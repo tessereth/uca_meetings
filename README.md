@@ -41,6 +41,13 @@ fastapi dev backend/main.py
 
 View swagger docs at http://127.0.0.1:8000/docs.
 
+Useful database commands:
+
+```
+psql -d uca_meetings -c 'TABLE "user"; TABLE meeting; TABLE participation;'
+psql -d uca_meetings -c 'DELETE FROM participation; DELETE FROM "user"; DELETE FROM meeting;'
+```
+
 ### Frontend
 
 Install a node version manager, eg https://github.com/tj/n.

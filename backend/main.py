@@ -88,7 +88,7 @@ class JoinMeeting(BaseModel):
     user_name: str
 
 
-@app.post("/api/meetings/{short_code}/join}")
+@app.post("/api/meetings/{short_code}/participants")
 def join_meeting(short_code: str, join_meeting: JoinMeeting, current_user: CurrentUser):
     with Session(engine) as session:
         stmt = select(Meeting).where(Meeting.short_code == short_code)
@@ -97,11 +97,22 @@ def join_meeting(short_code: str, join_meeting: JoinMeeting, current_user: Curre
         if not meeting:
             return {"error": "Unknown meeting"}, 404
 
-        participation = Participation(
-            user=current_user,
-            meeting=meeting,
-            name=join_meeting.user_name
+        # Check if user is already in the meeting
+        stmt = select(Participation).where(
+            Participation.meeting_id == meeting.id,
+            Participation.user_id == current_user.id
         )
+        results = session.scalars(stmt)
+        participation = results.first()
+        if participation:
+            participation.name = join_meeting.user_name
+        else:
+            participation = Participation(
+                user=current_user,
+                meeting=meeting,
+                name=join_meeting.user_name
+            )
+
         current_user.last_used_name = join_meeting.user_name
         session.add(participation)
         session.add(current_user)
