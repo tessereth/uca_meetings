@@ -4,14 +4,16 @@ import { createMeeting, CreateMeeting, APIErrorResponse } from "~/actions";
 
 export function Home() {
   const [meetingId, setMeetingId] = useState("");
+  const [userNameJoin, setUserNameJoin] = useState("");
   const [meetingName, setMeetingName] = useState("");
+  const [userNameCreate, setUserNameCreate] = useState("");
   const [anonymous, setAnonymous] = useState(false);
 
   const onJoin = () => {
     console.log("Joining meeting with ID:", meetingId);
   }
   const onCreate = async () => {
-    const meetingData = new CreateMeeting(meetingName, anonymous);
+    const meetingData = new CreateMeeting(meetingName, userNameCreate, anonymous);
     console.log("Creating meeting:", meetingData);
 
     const response = await createMeeting(meetingData)
@@ -39,6 +41,12 @@ export function Home() {
               value={meetingId}
               onChange={(e) => setMeetingId(e.target.value)}
             />
+            <TextField
+              label="User Name"
+              variant="outlined"
+              value={userNameJoin}
+              onChange={(e) => setUserNameJoin(e.target.value)}
+            />
             <Button variant="contained" onClick={onJoin}>Join</Button>
           </Stack>
         </Box>
@@ -53,6 +61,12 @@ export function Home() {
               variant="outlined"
               value={meetingName}
               onChange={(e) => setMeetingName(e.target.value)}
+            />
+            <TextField
+              label="User Name"
+              variant="outlined"
+              value={userNameCreate}
+              onChange={(e) => setUserNameCreate(e.target.value)}
             />
             <FormControlLabel control={
               <Switch value={anonymous} onChange={(e) => setAnonymous(!e.target.disabled)} />
