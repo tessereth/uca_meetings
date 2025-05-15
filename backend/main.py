@@ -2,6 +2,7 @@ from typing import Union
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -11,6 +12,18 @@ from models import Meeting, gen_short_code
 engine = create_engine(str(settings.POSTGRES_DSN))
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -22,7 +35,7 @@ class CreateMeeting(BaseModel):
     name: str
     anonymous: bool
 
-@app.post("/api/meeting")
+@app.post("/api/meetings")
 def create_meeting(createMeeting: CreateMeeting):
     # TODO: validate name
     meeting = Meeting(
