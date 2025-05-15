@@ -8,7 +8,7 @@ It's build with the following technology:
 * Postgres
 * SQLAcadamy
 * React
-* Styling framework TBD
+* [Chakra UI](https://chakra-ui.com/docs/components/concepts/overview)
 * Pubsub TBD
 
 ## Development
