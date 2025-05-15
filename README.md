@@ -6,7 +6,8 @@ It's build with the following technology:
 
 * Python FastAPI
 * Postgres
-* SQLAcadamy
+* SQL Model
+* [Alembic](https://alembic.sqlalchemy.org/en/latest/index.html)
 * React
 * [Chakra UI](https://chakra-ui.com/docs/components/concepts/overview)
 * Pubsub TBD
@@ -22,6 +23,14 @@ Common virtual environment tasks:
 ```sh
 source .venv/bin/activate
 pip install -r backend/requirements.txt
+```
+
+To set up the database, ensure you have postgres running and then:
+
+```
+psql postgres -c "CREATE DATABASE uca_meetings"
+cd backend
+alembic upgrade head
 ```
 
 Run the webserver:
