@@ -35,3 +35,9 @@ View swagger docs at http://127.0.0.1:8000/docs.
 ### Frontend
 
 Install a node version manager, eg https://github.com/tj/n.
+
+```sh
+cd frontend
+npm install
+npm run dev
+```
