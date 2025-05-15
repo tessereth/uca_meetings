@@ -9,7 +9,7 @@ It's build with the following technology:
 * SQL Model
 * [Alembic](https://alembic.sqlalchemy.org/en/latest/index.html)
 * React
-* [Chakra UI](https://chakra-ui.com/docs/components/concepts/overview)
+* [Material UI](https://mui.com/material-ui/getting-started/)
 * Pubsub TBD
 
 ## Development

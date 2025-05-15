@@ -9,7 +9,8 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { Provider } from "./components/ui/provider";
+import CssBaseline from '@mui/material/CssBaseline';
+import { Box, AppBar, Toolbar, IconButton, Typography, Button } from "@mui/material";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -20,9 +21,29 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+    href: "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap",
   },
 ];
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { name: "viewport", content: "initial-scale=1, width=device-width" },
+  ];
+}
+
+function ButtonAppBar() {
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
+            UCA Meetings
+          </Typography>
+        </Toolbar>
+      </AppBar>
+    </Box>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -44,9 +65,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Provider>
+    <>
+      <CssBaseline />
+      <ButtonAppBar />
       <Outlet />
-    </Provider>
+  </>
   );
 }
 
