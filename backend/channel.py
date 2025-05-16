@@ -1,9 +1,12 @@
 import threading
 from fastapi import WebSocket
 from dataclasses import dataclass
+
+from sqlalchemy import select
 from models import Meeting, Participation
 from collections import defaultdict
 from enum import Enum
+from sqlalchemy.orm import Session
 
 
 class CardType(str, Enum):
@@ -35,8 +38,8 @@ class ParticipationState:
 
 
 class MeetingState:
-    def __init__(self):
-      self.participants = {}
+    def __init__(self, init_participants: list[Participation]):
+      self.participants = { p.id: ParticipationState(p) for p in init_participants }
       self.questions = []
 
     def apply_event(self, event: CardEvent):
@@ -47,7 +50,7 @@ class MeetingState:
         if event.card_type == CardType.QUESTION:
             if event.raised and event.participation.id not in self.questions:
                 self.questions.append(event.participation.id)
-            elif not event.raised:
+            elif not event.raised and event.participation.id in self.questions:
                 self.questions.remove(event.participation.id)
 
     def snapshot(self):
@@ -63,10 +66,10 @@ class MeetingState:
 
 
 class MeetingChannel:
-    def __init__(self, meeting: Meeting):
+    def __init__(self, meeting: Meeting, init_participants: list[Participation]):
         self.meeting = meeting
         self.websockets = []
-        self.state = MeetingState()
+        self.state = MeetingState(init_participants)
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -95,9 +98,12 @@ class MeetingChannels:
     def __init__(self):
         self.channels = {}
 
-    def get(self, meeting: Meeting):
+    def get(self, meeting: Meeting, session: Session):
         if meeting.short_code not in self.channels:
-            self.channels[meeting.short_code] = MeetingChannel(meeting)
+            participants = session.scalars(
+                select(Participation).where(Participation.meeting == meeting)
+            )
+            self.channels[meeting.short_code] = MeetingChannel(meeting, participants)
         return self.channels[meeting.short_code]
 
     def remove(self, meeting: Meeting):

@@ -3,6 +3,7 @@ import type { Route } from '../routes/+types/meeting';
 import { useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react';
 import { orange, blue, yellow } from '@mui/material/colors';
+import { sendEvent } from './channel';
 
 function CardIcon({ color, checked, disabled }: { color: any, checked: boolean, disabled?: boolean }) {
   return <Checkbox size="large" checked={checked} disabled={disabled} sx={{
@@ -20,20 +21,39 @@ export default function Meeting(params: Route.LoaderArgs) {
   const [question, setQuestion] = useState(false);
 
   const [meetingSnapshot, setMeetingSnapshot] = useState<{ participants: any[] } | null>();
+
+  const syncCardData = () => {
+    console.log("Syncing card data");
+    sendEvent(websocket, meetingData.participation, "warm", warm)
+    sendEvent(websocket, meetingData.participation, "cool", cool)
+    sendEvent(websocket, meetingData.participation, "question", question)
+}
+
   useEffect(() => {
-    const handleEvent = (event: MessageEvent) => {
+    const onOpen = () => {
+      // Ensure card data is synched on reconnect
+      syncCardData();
+    }
+    const onMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
       console.log("Received message", data);
       setMeetingSnapshot(data);
     };
 
     console.log("Setting up WebSocket event listener");
-    websocket.addEventListener('message', handleEvent);
+    websocket.addEventListener('open', onOpen);
+    websocket.addEventListener('message', onMessage);
+
+    if (websocket.readyState === WebSocket.OPEN) {
+      // If the WebSocket is already open, call onOpen immediately
+      onOpen();
+    }
 
     return () => {
-      websocket.removeEventListener('message', handleEvent);
+      websocket.removeEventListener('open', onOpen);
+      websocket.removeEventListener('message', onMessage);
     };
-  }, [websocket]);
+  }, []);
 
   return (
     <main>
@@ -51,7 +71,7 @@ export default function Meeting(params: Route.LoaderArgs) {
         {meetingSnapshot && meetingSnapshot.participants && (
           <Box sx={{ my: 2 }}>
             {meetingSnapshot.participants.map((participant: any) => (
-              <div>
+              <div key={participant.id}>
                 <CardIcon color={orange} checked={participant.cards.warm} disabled />
                 <CardIcon color={blue} checked={participant.cards.cool} disabled />
                 <CardIcon color={yellow} checked={participant.cards.question} disabled />
@@ -67,7 +87,7 @@ export default function Meeting(params: Route.LoaderArgs) {
         <BottomNavigation
           showLabels
           onChange={(event, newValue) => {
-            let raised;
+            let raised = false;
             if (newValue === 'warm') {
               raised = !warm;
               setWarm(raised);
@@ -80,9 +100,7 @@ export default function Meeting(params: Route.LoaderArgs) {
               raised = !question;
               setQuestion(raised);
             }
-            const msg = { pid: meetingData.participation.id, card: newValue, raised: raised };
-            console.log("Sending message", msg);
-            websocket.send(JSON.stringify(msg));
+            sendEvent(websocket, meetingData.participation, newValue, raised);
           }}
           sx={{ height: 80 }}
         >

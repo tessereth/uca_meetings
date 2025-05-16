@@ -117,7 +117,7 @@ def get_meeting(short_code: str, current_user: CurrentUser):
 async def meeting_websocket(websocket: WebSocket, short_code: str):
     with Session(engine) as session:
         meeting = get_meeting_by_short_code(session, short_code)
-    channel = meeting_channels.get(meeting)
+        channel = meeting_channels.get(meeting, session)
     await channel.connect(websocket)
     #await channel.send_snapshot(websocket)
     try:
@@ -133,8 +133,10 @@ async def meeting_websocket(websocket: WebSocket, short_code: str):
                 raised=data["raised"]
             )
             await channel.handle_event(event)
-    except Exception:
+    except Exception as e:
+        print(f"Error in websocket: {e}")
         channel.disconnect(websocket)
+        raise
 
 
 @app.post("/api/meetings/{short_code}/flush")
