@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    POSTGRES_DSN: PostgresDsn = 'postgresql://localhost:5432/uca_meetings'
+    POSTGRES_DSN: PostgresDsn
 
     model_config = SettingsConfigDict(
         env_prefix='UCA_MEETINGS_',

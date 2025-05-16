@@ -1,0 +1,12 @@
+[Unit]
+Description=UCA Meetings Server
+After=network.target
+
+[Service]
+User=uca_meetings
+WorkingDirectory=/home/ec2-user/uca_meetings/
+ExecStart=/home/ec2-user/uca_meetings/deploy/service_entrypoint.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
