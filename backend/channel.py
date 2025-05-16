@@ -59,6 +59,7 @@ class MeetingState:
             "name": p.participation.name,
             "cards": p.cards
             } for p in self.participants.values() ]
+        participants.sort(key=lambda x: x["name"].lower())
         return {
             "participants": participants,
             "questions": [str(p) for p in self.questions]
