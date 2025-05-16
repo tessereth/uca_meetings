@@ -57,3 +57,5 @@ cd frontend
 npm install
 npm run dev
 ```
+
+The frontend dev server proxies requests to `/api*` to the python server to work around CORS.

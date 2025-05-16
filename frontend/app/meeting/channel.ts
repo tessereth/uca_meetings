@@ -3,8 +3,7 @@ import type { Participation } from "~/actions";
 import RobustWebSocket from "robust-websocket";
 
 export function connectWebSocket(shortCode: string): WebSocket {
-  // TODO: config domain name
-  const url = `ws://localhost:8000/api/meetings/${shortCode}/ws`
+  const url = `ws://${window.location.host}/api/meetings/${shortCode}/ws`
   const socket = new RobustWebSocket(url);
   console.log("Connecting to WebSocket", socket);
 

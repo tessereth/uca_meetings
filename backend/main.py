@@ -2,9 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketException, status
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from api_types import CreateMeeting, JoinMeeting, MeetingResponse
@@ -31,17 +29,6 @@ async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials, 
         return results[0]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
-origins = [
-    "http://localhost:5173",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 meeting_channels = MeetingChannels()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

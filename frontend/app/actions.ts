@@ -1,5 +1,5 @@
 function urlFor(path: string): string {
-  return `http://localhost:8000/api/${path}`;
+  return `/api/${path}`;
 }
 
 export class CreateMeeting {
