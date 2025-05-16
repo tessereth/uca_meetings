@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel
 
 
@@ -21,6 +22,7 @@ class Meeting(BaseModel):
 
 
 class Participation(BaseModel):
+    id: uuid.UUID
     name: str
 
     class Config:
