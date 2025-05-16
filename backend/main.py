@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketException, status
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import create_engine, select
@@ -30,7 +31,6 @@ async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials, 
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 meeting_channels = MeetingChannels()
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/api/me")
 def create_user():
@@ -152,3 +152,13 @@ def get_participation(session: Session, meeting: Meeting, user: User, allow_miss
     if not participation and not allow_missing:
         raise HTTPException(status_code=403, detail="You have not joined this meeting")
     return participation
+
+# Fallback to static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# And then really fall back to index.html
+@app.get("{full_path:path}")
+def default_index(full_path: str):
+    if full_path.startswith("/api/"):
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse("static/index.html")

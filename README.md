@@ -59,3 +59,12 @@ npm run dev
 ```
 
 The frontend dev server proxies requests to `/api*` to the python server to work around CORS.
+
+In production, the python server serves the frontend assets. To simulate this in dev:
+
+```sh
+cd frontend
+npm run build
+cd ../backend
+ln -s ../frontend/build/client static
+```

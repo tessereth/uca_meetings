@@ -3,8 +3,9 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  base: command === 'build' ? '/static/' : '/',
   server: {
     proxy: {
       '/api/': {
@@ -14,4 +15,4 @@ export default defineConfig({
       },
     }
   }
-});
+}));

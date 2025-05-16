@@ -10,7 +10,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, AppBar, Toolbar, IconButton, Typography, Button } from "@mui/material";
+import { Box, AppBar, Toolbar, Typography } from "@mui/material";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
