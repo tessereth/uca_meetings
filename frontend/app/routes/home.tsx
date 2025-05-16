@@ -9,9 +9,11 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function clientLoader({ params }: Route.LoaderArgs) {
+export async function clientLoader({ params, request }: Route.LoaderArgs) {
   const name = await getName();
-  return { name: name };
+  let url = new URL(request.url);
+  let shortCode = url.searchParams.get("meeting");
+  return { name: name, shortCode: shortCode };
 }
 
 export async function clientAction({ request }: Route.ClientActionArgs) {

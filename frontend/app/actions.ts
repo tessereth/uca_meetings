@@ -48,9 +48,11 @@ export class MeetingResponse {
 
 export class APIErrorResponse {
   message: string;
+  status_code: number | undefined;
 
-  constructor(message: string) {
+  constructor(message: string, status_code?: number) {
     this.message = message;
+    this.status_code = status_code;
   }
 }
 
@@ -92,7 +94,7 @@ const handleResponse = async (response: Response): Promise<any> => {
     if (response.status === 401) {
       deleteToken();
     }
-    return new APIErrorResponse(response.statusText);
+    return new APIErrorResponse(response.statusText, response.status);
   }
 
   return await response.json();

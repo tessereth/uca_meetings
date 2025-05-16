@@ -75,7 +75,7 @@ export default function Meeting(params: Route.LoaderArgs) {
                 <CardIcon color={orange} checked={participant.cards.warm} disabled />
                 <CardIcon color={blue} checked={participant.cards.cool} disabled />
                 <CardIcon color={yellow} checked={participant.cards.question} disabled />
-                <Typography variant="body1" component="span">
+                <Typography variant="body1" component="span" sx={{ pl: 1 }}>
                   {participant.name}
                 </Typography>
               </div>

@@ -1,7 +1,8 @@
 import type { Participation } from "~/actions";
+// @ts-ignore
 import RobustWebSocket from "robust-websocket";
 
-export async function connectWebSocket(shortCode: string): WebSocket {
+export function connectWebSocket(shortCode: string): WebSocket {
   // TODO: config domain name
   const url = `ws://localhost:8000/api/meetings/${shortCode}/ws`
   const socket = new RobustWebSocket(url);
@@ -11,7 +12,7 @@ export async function connectWebSocket(shortCode: string): WebSocket {
     console.log("WebSocket connection opened");
   });
 
-  socket.addEventListener('error', (error) => {
+  socket.addEventListener('error', (error: any) => {
     console.error("WebSocket error", error);
   });
   return socket;
