@@ -1,8 +1,10 @@
 # Deployment process
 
+## Setup
+
 This application is deployed to a pet AWS server. These are the commands I ran to set everything up.
 
-## User
+### User
 
 User that will run the web server
 
@@ -10,7 +12,7 @@ User that will run the web server
 sudo adduser uca_meetings
 ```
 
-## Postgres
+### Postgres
 
 ```sh
 sudo dnf install postgresql17 postgresql17-server
@@ -32,7 +34,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
 ```
 
-## Python
+### Python
 
 Already installed but we need to bind to port 80 so:
 
@@ -42,7 +44,7 @@ sudo mkdir /var/log/uca_meetings
 sudo chown -r uca_meetings:uca_meetings /var/log/uca_meetings
 ```
 
-## Git
+### Git
 
 ```sh
 sudo dnf install git
@@ -50,4 +52,14 @@ cd ~
 git clone https://github.com/tessereth/uca_meetings.git
 # Make home world readable so the uca_meetings user can see the repo
 chmod 0755 ~
+```
+
+## To deploy
+
+To deploy a new version, ssh to the server and then:
+
+```sh
+cd uca_meetings
+git pull
+deploy/deploy.sh
 ```
