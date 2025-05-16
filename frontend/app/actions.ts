@@ -14,14 +14,6 @@ export class CreateMeeting {
   }
 }
 
-export class JoinMeeting {
-  user_name: string;
-
-  constructor(user_name: string) {
-    this.user_name = user_name;
-  }
-}
-
 export class Meeting {
   name: string;
   anonymous: boolean;
@@ -31,6 +23,24 @@ export class Meeting {
     this.name = name;
     this.anonymous = anonymous;
     this.short_code = short_code;
+  }
+}
+
+export class Participation {
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+}
+
+export class MeetingResponse {
+  meeting: Meeting;
+  participation: Participation;
+
+  constructor(meeting: Meeting, participation: Participation) {
+    this.meeting = meeting;
+    this.participation = participation;
   }
 }
 
@@ -70,22 +80,29 @@ const deleteToken = (): void => {
   localStorage.removeItem('user-token');
 }
 
+const defaultHeaders = async () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${await getToken()}`,
+});
+
+const handleResponse = async (response: Response): Promise<any> => {
+  if (!response.ok) {
+    if (response.status === 401) {
+      deleteToken();
+    }
+    return new APIErrorResponse(response.statusText);
+  }
+
+  return await response.json();
+}
+
 export const getName = async (): Promise<string | null> => {
   try {
     const response = await fetch(urlFor('me'), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${await getToken()}`,
-      },
+      headers: await defaultHeaders(),
     });
-
-    if (!response.ok) {
-      console.warn('Error fetching user data:', response.statusText);
-      return null;
-    }
-
-    const data = await response.json();
+    const data = await handleResponse(response);
     return data.last_used_name || null;
   } catch (error: any) {
     console.warn('Error fetching user data:', error);
@@ -93,54 +110,52 @@ export const getName = async (): Promise<string | null> => {
   }
 }
 
-export const createMeeting = async (meetingData: CreateMeeting): Promise<Meeting | APIErrorResponse> => {
+export const createMeeting = async (meetingData: CreateMeeting): Promise<MeetingResponse | APIErrorResponse> => {
   console.log(JSON.stringify(meetingData))
   try {
     const response = await fetch(urlFor('meetings'), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${await getToken()}`,
-      },
+      headers: await defaultHeaders(),
       body: JSON.stringify(meetingData),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        deleteToken();
-      }
-      return new APIErrorResponse(response.statusText);
-    }
-
-    return await response.json();
+    return await handleResponse(response);
   } catch (error: any) {
     console.error('Error creating meeting:', error);
     return new APIErrorResponse(error.message);
   }
 };
 
-export const joinMeeting = async (shortCode: string, userName: string): Promise<Meeting | APIErrorResponse> => {
+export const joinMeeting = async (shortCode: string, userName: string): Promise<MeetingResponse | APIErrorResponse> => {
   console.log("Joining meeting with short code:", shortCode);
   try {
     const response = await fetch(urlFor(`meetings/${shortCode}/participants`), {
       method: 'POST',
+      headers: await defaultHeaders(),
+      body: JSON.stringify({user_name: userName}),
+    });
+
+    return await handleResponse(response);
+  } catch (error: any) {
+    console.error('Error creating meeting:', error);
+    return new APIErrorResponse(error.message);
+  }
+};
+
+export const getMeeting = async (shortCode: string): Promise<MeetingResponse | APIErrorResponse> => {
+  console.log("Fetching meeting with short code:", shortCode);
+  try {
+    const response = await fetch(urlFor(`meetings/${shortCode}`), {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${await getToken()}`,
       },
-      body: JSON.stringify({user_name: userName}),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        deleteToken();
-      }
-      return new APIErrorResponse(response.statusText);
-    }
-
-    return await response.json();
+    return await handleResponse(response);
   } catch (error: any) {
-    console.error('Error creating meeting:', error);
+    console.error('Error fetching meeting:', error);
     return new APIErrorResponse(error.message);
   }
 };

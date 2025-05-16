@@ -7,6 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+from api_types import CreateMeeting, JoinMeeting, MeetingResponse
 from config import settings
 from models import Meeting, Participation, User, gen_short_code
 import uuid
@@ -56,11 +57,6 @@ def create_user():
 def read_current_user(current_user: CurrentUser):
     return current_user
 
-class CreateMeeting(BaseModel):
-    meeting_name: str
-    user_name: str
-    anonymous: bool
-
 @app.post("/api/meetings")
 def create_meeting(create_meeting: CreateMeeting, current_user: CurrentUser):
     # TODO: validate name
@@ -81,11 +77,8 @@ def create_meeting(create_meeting: CreateMeeting, current_user: CurrentUser):
         session.add(current_user)
         session.commit()
         session.refresh(meeting)
-    return meeting
-
-
-class JoinMeeting(BaseModel):
-    user_name: str
+        session.refresh(participation)
+    return MeetingResponse(meeting=meeting, participation=participation)
 
 
 @app.post("/api/meetings/{short_code}/participants")
@@ -95,7 +88,7 @@ def join_meeting(short_code: str, join_meeting: JoinMeeting, current_user: Curre
         results = session.scalars(stmt)
         meeting = results.first()
         if not meeting:
-            return {"error": "Unknown meeting"}, 404
+            raise HTTPException(status_code=404, detail="Unknown meeting")
 
         # Check if user is already in the meeting
         stmt = select(Participation).where(
@@ -118,4 +111,26 @@ def join_meeting(short_code: str, join_meeting: JoinMeeting, current_user: Curre
         session.add(current_user)
         session.commit()
         session.refresh(meeting)
-    return meeting
+        session.refresh(participation)
+    return MeetingResponse(meeting=meeting, participation=participation)
+
+
+@app.get("/api/meetings/{short_code}")
+def get_meeting(short_code: str, current_user: CurrentUser):
+    with Session(engine) as session:
+        stmt = select(Meeting).where(Meeting.short_code == short_code)
+        results = session.scalars(stmt)
+        meeting = results.first()
+        if not meeting:
+            raise HTTPException(status_code=404, detail="Unknown meeting")
+
+        stmt = select(Participation).where(
+            Participation.meeting_id == meeting.id,
+            Participation.user_id == current_user.id
+        )
+        results = session.scalars(stmt)
+        participation = results.first()
+        if not participation:
+            raise HTTPException(status_code=403, detail="You have not joined this meeting")
+
+    return MeetingResponse(meeting=meeting, participation=participation)
