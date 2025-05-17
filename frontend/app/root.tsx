@@ -1,5 +1,6 @@
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -10,7 +11,14 @@ import {
 import type { Route } from "./+types/root"
 import "./app.css"
 import CssBaseline from "@mui/material/CssBaseline"
-import { Box, AppBar, Toolbar, Typography } from "@mui/material"
+import {
+  Box,
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Container,
+} from "@mui/material"
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -33,11 +41,26 @@ function ButtonAppBar() {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
-            UCA Meetings
-          </Typography>
-        </Toolbar>
+        <Container>
+          <Toolbar>
+            <Typography
+              variant="h5"
+              noWrap
+              component={Link}
+              to="/"
+              sx={{
+                mr: 2,
+                display: { xs: "none", md: "flex" },
+                fontFamily: "monospace",
+                fontWeight: 700,
+                color: "inherit",
+                textDecoration: "none",
+              }}
+            >
+              UCA Meetings
+            </Typography>
+          </Toolbar>
+        </Container>
       </AppBar>
     </Box>
   )

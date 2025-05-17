@@ -85,7 +85,7 @@ export default function Meeting(params: Route.LoaderArgs) {
   return (
     <main>
       <Container>
-        <Box sx={{ my: 2 }}>
+        <Box sx={{ m: 2 }}>
           <Typography variant="h3" component="h1">
             {meetingData.meeting.name}
           </Typography>
