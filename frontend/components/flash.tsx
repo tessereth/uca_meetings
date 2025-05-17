@@ -32,7 +32,14 @@ const FlashMessage: React.FC<FlashMessageProps> = ({
   )
 }
 
-const useFlash = () => {
+const useFlash: () => [
+  React.FC<{}>,
+  (args: {
+    message: string
+    severity: "success" | "error" | "warning" | "info"
+    id: number
+  }) => void,
+] = () => {
   const [flash, setFlash] = React.useState<{
     open: boolean
     message: string
@@ -72,7 +79,7 @@ const useFlash = () => {
     setFlash({ open: true, message, severity, seen: [...flash.seen, id] })
   }
 
-  const FlashComponent = () => (
+  const FlashComponent: React.FC<{}> = () => (
     <FlashMessage
       open={flash.open}
       message={flash.message}
