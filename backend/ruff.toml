@@ -1,0 +1,4 @@
+[lint]
+# Enable some extra rules on top of the defaults
+select = ["E", "F", "W", "N", "B", "I"]
+ignore = []

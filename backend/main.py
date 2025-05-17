@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 from fastapi import (
@@ -9,15 +10,15 @@ from fastapi import (
     status,
 )
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+
 from api_types import CreateMeeting, JoinMeeting, MeetingResponse
 from channel import CardEvent, MeetingChannels
 from config import settings
 from models import Meeting, Participation, User, gen_short_code
-import uuid
 
 engine = create_engine(str(settings.POSTGRES_DSN))
 
@@ -32,8 +33,10 @@ async def get_current_user(
     with Session(engine) as session:
         try:
             user_uuid = uuid.UUID(credentials.credentials)
-        except ValueError:
-            raise HTTPException(status_code=401, detail="Invalid authorization header")
+        except ValueError as e:
+            raise HTTPException(
+                status_code=401, detail="Invalid authorization header"
+            ) from e
         stmt = select(User).where(User.id == user_uuid)
         results = session.scalars(stmt).all()
         if not len(results) == 1:

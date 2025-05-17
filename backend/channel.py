@@ -1,11 +1,12 @@
-from fastapi import WebSocket
-from dataclasses import dataclass
-
-from sqlalchemy import select
-from models import Meeting, Participation
 from collections import defaultdict
+from dataclasses import dataclass
 from enum import Enum
+
+from fastapi import WebSocket
+from sqlalchemy import select
 from sqlalchemy.orm import Session
+
+from models import Meeting, Participation
 
 
 class CardType(str, Enum):

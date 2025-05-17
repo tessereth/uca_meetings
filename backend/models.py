@@ -1,11 +1,11 @@
+import datetime
 import random
 import string
-from typing import List, Optional
 import uuid
-import datetime
+from typing import List, Optional
+
 import sqlalchemy as sa
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
