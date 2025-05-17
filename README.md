@@ -75,3 +75,10 @@ npm run build
 cd ../backend
 ln -s ../frontend/build/client static
 ```
+
+The frontend is formatted using [prettier](https://prettier.io/):
+
+```sh
+cd frontend
+npm run format
+```
