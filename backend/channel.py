@@ -1,4 +1,3 @@
-import threading
 from fastapi import WebSocket
 from dataclasses import dataclass
 
