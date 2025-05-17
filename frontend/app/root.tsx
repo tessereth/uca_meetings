@@ -11,14 +11,7 @@ import {
 import type { Route } from "./+types/root"
 import "./app.css"
 import CssBaseline from "@mui/material/CssBaseline"
-import {
-  Box,
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Container,
-} from "@mui/material"
+import PrimaryNav from "components/primaryNav"
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -31,39 +24,15 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap",
   },
+  {
+    rel: "icon",
+    href: "/static/icon.png",
+    type: "image/png",
+  },
 ]
 
 export function meta({}: Route.MetaArgs) {
   return [{ name: "viewport", content: "initial-scale=1, width=device-width" }]
-}
-
-function ButtonAppBar() {
-  return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Container>
-          <Toolbar>
-            <Typography
-              variant="h5"
-              noWrap
-              component={Link}
-              to="/"
-              sx={{
-                mr: 2,
-                display: { xs: "none", md: "flex" },
-                fontFamily: "monospace",
-                fontWeight: 700,
-                color: "inherit",
-                textDecoration: "none",
-              }}
-            >
-              UCA Meetings
-            </Typography>
-          </Toolbar>
-        </Container>
-      </AppBar>
-    </Box>
-  )
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -88,7 +57,7 @@ export default function App() {
   return (
     <>
       <CssBaseline />
-      <ButtonAppBar />
+      <PrimaryNav />
       <Outlet />
     </>
   )
