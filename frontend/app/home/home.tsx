@@ -9,11 +9,18 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
-import { Form, useLoaderData } from "react-router"
+import { Form, useActionData, useLoaderData } from "react-router"
 import type { Route } from "../routes/+types/home"
+import useFlash from "components/flash"
 
 export default function Home(params: Route.LoaderArgs) {
   const loaderData = useLoaderData()
+  const actionData = useActionData()
+  const [FlashComponent, showFlash] = useFlash()
+
+  if (actionData && actionData.flash) {
+    showFlash(actionData.flash)
+  }
 
   const renderCreate = !loaderData.shortCode
 
@@ -79,6 +86,7 @@ export default function Home(params: Route.LoaderArgs) {
           </>
         )}
       </Container>
+      <FlashComponent />
     </main>
   )
 }

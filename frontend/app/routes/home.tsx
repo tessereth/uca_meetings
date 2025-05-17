@@ -30,6 +30,13 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     )
     if (data instanceof APIErrorResponse) {
       console.error("Error joining meeting:", data.message)
+      return {
+        flash: {
+          message: "Error joining meeting: " + data.message,
+          severity: "error",
+          id: Date.now(),
+        },
+      }
     } else {
       return redirect(`/${data.meeting.short_code}`)
     }
@@ -42,6 +49,13 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     const response = await createMeeting(meetingData)
     if (response instanceof APIErrorResponse) {
       console.error("Error creating meeting:", response.message)
+      return {
+        flash: {
+          message: "Error joining meeting: " + response.message,
+          severity: "error",
+          id: Date.now(),
+        },
+      }
     } else {
       return redirect(`/${response.meeting.short_code}`)
     }

@@ -2,18 +2,19 @@ import {
   BottomNavigation,
   BottomNavigationAction,
   Box,
-  Card,
+  Button,
   Checkbox,
   Container,
-  FormControlLabel,
   Paper,
   Typography,
 } from "@mui/material"
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import type { Route } from "../routes/+types/meeting"
 import { useLoaderData } from "react-router"
 import { useEffect, useState } from "react"
 import { orange, blue, yellow } from "@mui/material/colors"
 import { sendEvent } from "./channel"
+import useFlash from "components/flash"
 
 function CardIcon({
   color,
@@ -39,12 +40,33 @@ function CardIcon({
   )
 }
 
+const copyToClipboard = async (text: string, setFlash: any) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    setFlash({
+      message: "Link copied to clipboard",
+      severity: "success",
+      id: Date.now(),
+    })
+  } catch (err) {
+    console.error("Failed to copy link: ", err)
+    setFlash({
+      message: "Failed to copy link",
+      severity: "error",
+      id: Date.now(),
+    })
+  }
+}
+
 export default function Meeting(params: Route.LoaderArgs) {
   const { meetingData, websocket } = useLoaderData()
   const [warm, setWarm] = useState(false)
   const [cool, setCool] = useState(false)
   const [question, setQuestion] = useState(false)
 
+  const [FlashComponent, setFlash] = useFlash()
+
+  // Websocket setup
   const [meetingSnapshot, setMeetingSnapshot] = useState<{
     participants: any[]
   } | null>()
@@ -90,9 +112,18 @@ export default function Meeting(params: Route.LoaderArgs) {
             {meetingData.meeting.name}
           </Typography>
           <Typography variant="subtitle1">
-            {meetingData.meeting.short_code}
-            {" — "}
             {meetingData.participation.name}
+            {" — "}
+            {meetingData.meeting.short_code}
+            <Button
+              sx={{ mx: 1 }}
+              onClick={() =>
+                copyToClipboard(window.location.toString(), setFlash)
+              }
+            >
+              <ContentCopyIcon fontSize="small" sx={{ mx: 1 }} />
+              Copy link
+            </Button>
           </Typography>
         </Box>
         {meetingSnapshot && meetingSnapshot.participants && (
@@ -166,6 +197,7 @@ export default function Meeting(params: Route.LoaderArgs) {
           />
         </BottomNavigation>
       </Paper>
+      <FlashComponent />
     </main>
   )
 }
