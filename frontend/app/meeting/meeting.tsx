@@ -5,31 +5,28 @@ import {
   Button,
   Checkbox,
   Container,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   Paper,
+  SvgIcon,
   Typography,
 } from "@mui/material"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import type { Route } from "../routes/+types/meeting"
 import { useLoaderData } from "react-router"
 import { useEffect, useState } from "react"
-import { orange, blue, yellow } from "@mui/material/colors"
+import { orange, blue, yellow, grey } from "@mui/material/colors"
 import { sendEvent } from "./channel"
 import useFlash from "components/flash"
 
-function CardIcon({
-  color,
-  checked,
-  disabled,
-}: {
-  color: any
-  checked: boolean
-  disabled?: boolean
-}) {
+function CardCheckbox({ color, checked }: { color: any; checked: boolean }) {
   return (
     <Checkbox
       size="large"
       checked={checked}
-      disabled={disabled}
       sx={{
         color: color[800],
         "&.Mui-checked": {
@@ -37,6 +34,21 @@ function CardIcon({
         },
       }}
     />
+  )
+}
+
+function CardIcon({ color, enabled }: { color: any; enabled: boolean }) {
+  if (enabled) {
+    return <CardFilled fontSize="large" sx={{ color: color[600] }} />
+  }
+  return <CheckBoxOutlineBlankIcon fontSize="large" sx={{ color: grey[300] }} />
+}
+
+function CardFilled(params: any) {
+  return (
+    <SvgIcon {...params}>
+      <path d="M5 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"></path>
+    </SvgIcon>
   )
 }
 
@@ -127,30 +139,29 @@ export default function Meeting(params: Route.LoaderArgs) {
           </Typography>
         </Box>
         {meetingSnapshot && meetingSnapshot.participants && (
-          <Box sx={{ my: 2 }}>
+          <List sx={{ my: 2 }}>
             {meetingSnapshot.participants.map((participant: any) => (
-              <div key={participant.id}>
-                <CardIcon
-                  color={orange}
-                  checked={participant.cards.warm}
-                  disabled
-                />
-                <CardIcon
-                  color={blue}
-                  checked={participant.cards.cool}
-                  disabled
-                />
-                <CardIcon
-                  color={yellow}
-                  checked={participant.cards.question}
-                  disabled
-                />
-                <Typography variant="body1" component="span" sx={{ pl: 1 }}>
-                  {participant.name}
-                </Typography>
-              </div>
+              <ListItem key={participant.id}>
+                <ListItemIcon>
+                  <CardIcon color={orange} enabled={participant.cards.warm} />
+                </ListItemIcon>
+                <ListItemIcon>
+                  <CardIcon color={blue} enabled={participant.cards.cool} />
+                </ListItemIcon>
+                <ListItemIcon>
+                  <CardIcon
+                    color={yellow}
+                    enabled={participant.cards.question}
+                  />
+                </ListItemIcon>
+                <ListItemText>
+                  <Typography variant="body1" component="span">
+                    {participant.name}
+                  </Typography>
+                </ListItemText>
+              </ListItem>
             ))}
-          </Box>
+          </List>
         )}
       </Container>
       <Paper
@@ -180,19 +191,19 @@ export default function Meeting(params: Route.LoaderArgs) {
           <BottomNavigationAction
             label="Warm"
             value="warm"
-            icon={<CardIcon color={orange} checked={warm} />}
+            icon={<CardCheckbox color={orange} checked={warm} />}
             sx={{ backgroundColor: orange[100] }}
           />
           <BottomNavigationAction
             label="Cool"
             value="cool"
-            icon={<CardIcon color={blue} checked={cool} />}
+            icon={<CardCheckbox color={blue} checked={cool} />}
             sx={{ backgroundColor: blue[100] }}
           />
           <BottomNavigationAction
             label="Question"
             value="question"
-            icon={<CardIcon color={yellow} checked={question} />}
+            icon={<CardCheckbox color={yellow} checked={question} />}
             sx={{ backgroundColor: yellow[100] }}
           />
         </BottomNavigation>
