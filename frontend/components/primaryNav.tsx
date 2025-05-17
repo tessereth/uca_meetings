@@ -29,7 +29,6 @@ export default function PrimaryNav() {
               to="/"
               sx={{
                 mx: 2,
-                display: { xs: "none", md: "flex" },
                 fontFamily: "monospace",
                 fontWeight: 700,
                 color: "inherit",
