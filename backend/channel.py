@@ -28,7 +28,7 @@ class ParticipationState:
         self.cards = {
             CardType.WARM: False,
             CardType.COOL: False,
-            CardType.QUESTION: False
+            CardType.QUESTION: False,
         }
 
     def apply_event(self, event: CardEvent):
@@ -39,12 +39,14 @@ class ParticipationState:
 
 class MeetingState:
     def __init__(self, init_participants: list[Participation]):
-      self.participants = { p.id: ParticipationState(p) for p in init_participants }
-      self.questions = []
+        self.participants = {p.id: ParticipationState(p) for p in init_participants}
+        self.questions = []
 
     def apply_event(self, event: CardEvent):
         if event.participation.id not in self.participants:
-            self.participants[event.participation.id] = ParticipationState(event.participation)
+            self.participants[event.participation.id] = ParticipationState(
+                event.participation
+            )
         participation_state = self.participants[event.participation.id]
         participation_state.apply_event(event)
         if event.card_type == CardType.QUESTION:
@@ -54,15 +56,18 @@ class MeetingState:
                 self.questions.remove(event.participation.id)
 
     def snapshot(self):
-        participants = [ {
-            "id": str(p.participation.id),
-            "name": p.participation.name,
-            "cards": p.cards
-            } for p in self.participants.values() ]
+        participants = [
+            {
+                "id": str(p.participation.id),
+                "name": p.participation.name,
+                "cards": p.cards,
+            }
+            for p in self.participants.values()
+        ]
         participants.sort(key=lambda x: x["name"].lower())
         return {
             "participants": participants,
-            "questions": [str(p) for p in self.questions]
+            "questions": [str(p) for p in self.questions],
         }
 
 
@@ -93,7 +98,9 @@ class MeetingChannel:
     def __repr__(self):
         return f"MeetingChannel(meeting={self.meeting.short_code})"
 
+
 meeting_channels = defaultdict(MeetingChannel)
+
 
 class MeetingChannels:
     def __init__(self):
@@ -110,5 +117,3 @@ class MeetingChannels:
     def remove(self, meeting: Meeting):
         if meeting.short_code in self.channels:
             del self.channels[meeting.short_code]
-
-

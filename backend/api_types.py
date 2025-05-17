@@ -32,4 +32,3 @@ class Participation(BaseModel):
 class MeetingResponse(BaseModel):
     meeting: Meeting
     participation: Participation
-
