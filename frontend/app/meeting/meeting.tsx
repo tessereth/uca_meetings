@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
   Container,
   List,
   ListItem,
@@ -81,6 +82,7 @@ export default function Meeting(params: Route.LoaderArgs) {
   // Websocket setup
   const [meetingSnapshot, setMeetingSnapshot] = useState<{
     participants: any[]
+    questions: any[]
   } | null>()
 
   const syncCardData = () => {
@@ -139,29 +141,60 @@ export default function Meeting(params: Route.LoaderArgs) {
           </Typography>
         </Box>
         {meetingSnapshot && meetingSnapshot.participants && (
-          <List sx={{ my: 2 }}>
-            {meetingSnapshot.participants.map((participant: any) => (
-              <ListItem key={participant.id}>
-                <ListItemIcon>
-                  <CardIcon color={orange} enabled={participant.cards.warm} />
-                </ListItemIcon>
-                <ListItemIcon>
-                  <CardIcon color={blue} enabled={participant.cards.cool} />
-                </ListItemIcon>
-                <ListItemIcon>
-                  <CardIcon
-                    color={yellow}
-                    enabled={participant.cards.question}
-                  />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography variant="body1" component="span">
-                    {participant.name}
-                  </Typography>
-                </ListItemText>
-              </ListItem>
-            ))}
-          </List>
+          <>
+            <Box sx={{ m: 2 }}>
+              <Chip
+                label={`Warm: ${meetingSnapshot.participants.filter((p) => p.cards.warm).length}`}
+                variant="outlined"
+              />
+              <Chip
+                label={`Cool: ${meetingSnapshot.participants.filter((p) => p.cards.cool).length}`}
+                variant="outlined"
+                sx={{ mx: 1 }}
+              />
+            </Box>
+            {meetingSnapshot.questions.length > 0 && (
+              <Box sx={{ m: 2 }}>
+                <Typography variant="body1">
+                  Questions:
+                  <ol>
+                    {meetingSnapshot.questions.map((question: string) => (
+                      <li>
+                        {
+                          meetingSnapshot.participants.find(
+                            (p) => p.id == question,
+                          ).name
+                        }
+                      </li>
+                    ))}
+                  </ol>
+                </Typography>
+              </Box>
+            )}
+            <List sx={{ my: 2 }}>
+              {meetingSnapshot.participants.map((participant: any) => (
+                <ListItem key={participant.id}>
+                  <ListItemIcon>
+                    <CardIcon color={orange} enabled={participant.cards.warm} />
+                  </ListItemIcon>
+                  <ListItemIcon>
+                    <CardIcon color={blue} enabled={participant.cards.cool} />
+                  </ListItemIcon>
+                  <ListItemIcon>
+                    <CardIcon
+                      color={yellow}
+                      enabled={participant.cards.question}
+                    />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography variant="body1" component="span">
+                      {participant.name}
+                    </Typography>
+                  </ListItemText>
+                </ListItem>
+              ))}
+            </List>
+          </>
         )}
       </Container>
       <Paper
