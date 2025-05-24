@@ -7,7 +7,8 @@ import {
   Paper,
   Typography,
 } from "@mui/material"
-import { CardIcon, CardState, cardStateLabel } from "components/cards"
+import { CardIcon, cardStateLabel } from "~/components/cards"
+import { CardState } from "~/components/cardState"
 import { sendCardChangeEvent } from "./channel"
 import type { MeetingResponse } from "~/actions"
 import CheckIcon from "@mui/icons-material/Check"

@@ -6,7 +6,7 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material"
-import { CardIcon } from "components/cards"
+import { CardIcon } from "~/components/cards"
 import type { MeetingParticipant } from "./channel"
 
 type ParticipantsListProps = {

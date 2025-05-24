@@ -11,7 +11,7 @@ import {
 import type { Route } from "./+types/root"
 import "./app.css"
 import CssBaseline from "@mui/material/CssBaseline"
-import PrimaryNav from "components/primaryNav"
+import PrimaryNav from "~/components/primaryNav"
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },

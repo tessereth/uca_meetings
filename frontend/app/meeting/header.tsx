@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from "@mui/material"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
-import type { setFlashFunc } from "components/flash"
+import type { setFlashFunc } from "~/components/flash"
 import type { MeetingResponse } from "~/actions"
 
 const copyToClipboard = async (text: string, setFlash: any) => {

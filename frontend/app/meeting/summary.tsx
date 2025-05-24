@@ -1,5 +1,5 @@
 import { Chip, Paper, Stack, Typography } from "@mui/material"
-import { CardState } from "components/cards"
+import { CardState } from "~/components/cardState"
 import type { MeetingSnapshot } from "./channel"
 
 export default function Summary({

@@ -1,16 +1,7 @@
 import { SvgIcon } from "@mui/material"
 import { orange, blue, yellow, grey } from "@mui/material/colors"
 import type { SvgIconProps } from "@mui/material"
-
-export enum CardState {
-  None = "none",
-  Warm = "warm",
-  Cool = "cool",
-  Question = "question",
-  QuestionWarm = "question_warm",
-  QuestionCool = "question_cool",
-  MoveOn = "move_on",
-}
+import { CardState } from "./cardState"
 
 export function cardStateLabel(state: CardState) {
   switch (state) {

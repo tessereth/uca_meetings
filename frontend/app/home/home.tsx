@@ -11,7 +11,7 @@ import {
 } from "@mui/material"
 import { Form, useActionData, useLoaderData } from "react-router"
 import type { Route } from "../routes/+types/home"
-import useFlash from "components/flash"
+import useFlash from "~/components/flash"
 
 export default function Home(params: Route.LoaderArgs) {
   const loaderData = useLoaderData()

@@ -1,7 +1,7 @@
 import type { Participation } from "~/actions"
 // @ts-ignore
 import RobustWebSocket from "robust-websocket"
-import type { CardState } from "components/cards"
+import type { CardState } from "~/components/cardState"
 
 export function connectWebSocket(shortCode: string): WebSocket {
   const url = `ws://${window.location.host}/api/meetings/${shortCode}/ws`
