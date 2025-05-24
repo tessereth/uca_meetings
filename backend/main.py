@@ -6,8 +6,6 @@ from fastapi import (
     FastAPI,
     HTTPException,
     WebSocket,
-    WebSocketException,
-    status,
 )
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -16,7 +14,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from api_types import CreateMeeting, JoinMeeting, MeetingResponse
-from channel import CardEvent, MeetingChannels
+from channel import ChannelEvent, MeetingChannels
 from config import settings
 from models import Meeting, Participation, User, gen_short_code
 
@@ -132,18 +130,7 @@ async def meeting_websocket(websocket: WebSocket, short_code: str):
         while True:
             data = await websocket.receive_json()
             with Session(engine) as session:
-                participation = session.scalars(
-                    select(Participation).where(Participation.id == data["pid"])
-                ).first()
-                if not participation:
-                    raise WebSocketException(
-                        code=status.WS_1008_POLICY_VIOLATION, reason="Unknown user"
-                    )
-            event = CardEvent(
-                participation=participation,
-                card_type=data["card"],
-                raised=data["raised"],
-            )
+                event = ChannelEvent.from_payload(session, data)
             await channel.handle_event(event)
     except Exception as e:
         print(f"Error in websocket: {e}")

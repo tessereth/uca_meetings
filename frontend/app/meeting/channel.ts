@@ -1,10 +1,14 @@
 import type { Participation } from "~/actions"
 // @ts-ignore
 import RobustWebSocket from "robust-websocket"
+import type { CardState } from "components/cards"
 
 export function connectWebSocket(shortCode: string): WebSocket {
   const url = `ws://${window.location.host}/api/meetings/${shortCode}/ws`
-  const socket = new RobustWebSocket(url)
+  const socket = new RobustWebSocket(url, null, {
+    shouldReconnect: (_event: any, ws: RobustWebSocket) =>
+      ws.reconnects <= 3 && 0,
+  })
   console.log("Connecting to WebSocket", socket)
 
   socket.addEventListener("open", () => {
@@ -17,13 +21,28 @@ export function connectWebSocket(shortCode: string): WebSocket {
   return socket
 }
 
-export async function sendEvent(
+enum EventType {
+  CardChange = "card_change",
+  LowerAllCards = "lower_all_cards",
+}
+
+async function sendEvent(
   websocket: WebSocket,
   participation: Participation,
-  card: string,
-  raised: boolean,
+  event: EventType,
+  params: any,
 ) {
-  const msg = { pid: participation.id, card: card, raised: raised }
+  const msg = { pid: participation.id, event: event, ...params }
   console.log("Sending message", msg)
   websocket.send(JSON.stringify(msg))
+}
+
+export async function sendCardChangeEvent(
+  websocket: WebSocket,
+  participation: Participation,
+  cardState: CardState,
+) {
+  sendEvent(websocket, participation, EventType.CardChange, {
+    state: cardState,
+  })
 }

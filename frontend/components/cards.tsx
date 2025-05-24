@@ -1,4 +1,4 @@
-import { Card, SvgIcon } from "@mui/material"
+import { SvgIcon } from "@mui/material"
 import { orange, blue, yellow, grey } from "@mui/material/colors"
 import type { SvgIconProps } from "@mui/material"
 
@@ -10,6 +10,27 @@ export enum CardState {
   QuestionWarm = "question_warm",
   QuestionCool = "question_cool",
   MoveOn = "move_on",
+}
+
+export function cardStateLabel(state: CardState) {
+  switch (state) {
+    case CardState.None:
+      return "None"
+    case CardState.Warm:
+      return "Warm"
+    case CardState.Cool:
+      return "Cool"
+    case CardState.Question:
+      return "Question"
+    case CardState.QuestionWarm:
+      return "Speak for"
+    case CardState.QuestionCool:
+      return "Speak against"
+    case CardState.MoveOn:
+      return "Move on"
+    default:
+      return ""
+  }
 }
 
 export function CardIcon({
@@ -53,28 +74,6 @@ export function CardIcon({
     default:
       return <EmptyCardIcon {...params} />
   }
-}
-
-export function CardIconLegacy({
-  warm,
-  cool,
-  question,
-  ...params
-}: { warm: boolean; cool: boolean; question: boolean } & SvgIconProps) {
-  if (warm && cool) {
-    return <CardIcon state={CardState.MoveOn} {...params} />
-  } else if (warm && question) {
-    return <CardIcon state={CardState.QuestionWarm} {...params} />
-  } else if (cool && question) {
-    return <CardIcon state={CardState.QuestionCool} {...params} />
-  } else if (warm) {
-    return <CardIcon state={CardState.Warm} {...params} />
-  } else if (cool) {
-    return <CardIcon state={CardState.Cool} {...params} />
-  } else if (question) {
-    return <CardIcon state={CardState.Question} {...params} />
-  }
-  return <CardIcon state={CardState.None} {...params} />
 }
 
 function EmptyCardIcon({ color, ...params }: any) {
