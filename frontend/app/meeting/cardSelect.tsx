@@ -10,6 +10,7 @@ import {
 import { CardIcon, CardState, cardStateLabel } from "components/cards"
 import { sendCardChangeEvent } from "./channel"
 import type { MeetingResponse } from "~/actions"
+import CheckIcon from "@mui/icons-material/Check"
 
 interface CardSelectProps {
   cardState: CardState
@@ -40,6 +41,9 @@ export default function CardSelect({
                 sendCardChangeEvent(websocket, meetingData.participation, state)
               }}
             >
+              <ListItemIcon sx={{ minWidth: "32px" }}>
+                {state == cardState && <CheckIcon />}
+              </ListItemIcon>
               <ListItemIcon>
                 <CardIcon state={state} />
               </ListItemIcon>
