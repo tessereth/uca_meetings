@@ -7,26 +7,22 @@ import {
   Typography,
 } from "@mui/material"
 import { CardIcon } from "components/cards"
-import type { MeetingParticipant } from "./channel"
+import type { MeetingSnapshot } from "./channel"
 
 type QuestionListProps = {
-  questioners: string[]
-  getParticipant: (id: string) => MeetingParticipant | null | undefined
+  meetingSnapshot: MeetingSnapshot
 }
 
-export default function QuestionList({
-  questioners,
-  getParticipant,
-}: QuestionListProps) {
+export default function QuestionList({ meetingSnapshot }: QuestionListProps) {
   const rowFor = (questioner: string) => {
-    const participant = getParticipant(questioner)
+    const participant = meetingSnapshot.getParticipant(questioner)
     if (!participant) {
       return null
     }
     return (
       <ListItem key={questioner}>
         <ListItemIcon>
-          <CardIcon state={participant.card_state} />
+          <CardIcon state={participant.cardState} />
         </ListItemIcon>
         <ListItemText>
           <Typography variant="body1" component="span">
@@ -40,7 +36,7 @@ export default function QuestionList({
   return (
     <Box sx={{ m: 2 }}>
       <Typography variant="body1">Speaker queue:</Typography>
-      <List>{questioners.map(rowFor)}</List>
+      <List>{meetingSnapshot.questions.map(rowFor)}</List>
     </Box>
   )
 }

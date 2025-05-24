@@ -2,7 +2,7 @@ import { Container, Grid } from "@mui/material"
 import type { Route } from "../routes/+types/meeting"
 import { useLoaderData } from "react-router"
 import { useEffect, useState } from "react"
-import { sendCardChangeEvent, type MeetingSnapshot } from "./channel"
+import { sendCardChangeEvent, MeetingSnapshot } from "./channel"
 import useFlash from "components/flash"
 import { CardState } from "components/cards"
 import Header from "./header"
@@ -30,7 +30,7 @@ export default function Meeting(params: Route.LoaderArgs) {
     const onMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data)
       console.log("Received message", data)
-      setMeetingSnapshot(data)
+      setMeetingSnapshot(new MeetingSnapshot(data))
     }
 
     console.log("Setting up WebSocket event listener")
@@ -47,14 +47,6 @@ export default function Meeting(params: Route.LoaderArgs) {
       websocket.removeEventListener("message", onMessage)
     }
   }, [])
-
-  const getParticipant = (pid: string) => {
-    if (meetingSnapshot) {
-      return meetingSnapshot.participants.find((p) => p.id == pid)
-    } else {
-      return null
-    }
-  }
 
   return (
     <main>
@@ -73,10 +65,7 @@ export default function Meeting(params: Route.LoaderArgs) {
             <Grid size={{ xs: 12, md: 6 }}>
               <Summary meetingSnapshot={meetingSnapshot} />
               {meetingSnapshot.questions.length > 0 && (
-                <QuestionList
-                  questioners={meetingSnapshot.questions}
-                  getParticipant={getParticipant}
-                />
+                <QuestionList meetingSnapshot={meetingSnapshot} />
               )}
               <ParticipantsList participants={meetingSnapshot.participants} />
             </Grid>

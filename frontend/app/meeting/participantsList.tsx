@@ -23,7 +23,7 @@ export default function ParticipantsList({
         {participants.map((participant) => (
           <ListItem key={participant.id}>
             <ListItemIcon>
-              <CardIcon state={participant.card_state} />
+              <CardIcon state={participant.cardState} />
             </ListItemIcon>
             <ListItemText>
               <Typography variant="body1" component="span">

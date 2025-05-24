@@ -48,13 +48,34 @@ export async function sendCardChangeEvent(
 }
 
 // The meeting snapshot data structure send on the websocket
-export type MeetingSnapshot = {
+export class MeetingSnapshot {
   participants: Array<MeetingParticipant>
   questions: string[]
+
+  constructor(websocketData: any) {
+    this.participants = websocketData.participants.map(
+      (p: any) => new MeetingParticipant(p.id, p.name, p.card_state),
+    )
+    this.questions = websocketData.questions
+  }
+
+  getParticipant(pid: string) {
+    return this.participants.find((p) => p.id == pid)
+  }
+
+  stateCount(state: CardState): number {
+    return this.participants.filter((p) => p.cardState == state).length
+  }
 }
 
-export type MeetingParticipant = {
+export class MeetingParticipant {
   id: string
   name: string
-  card_state: CardState
+  cardState: CardState
+
+  constructor(id: string, name: string, cardState: CardState) {
+    this.id = id
+    this.name = name
+    this.cardState = cardState
+  }
 }
