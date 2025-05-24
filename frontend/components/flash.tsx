@@ -32,14 +32,13 @@ const FlashMessage: React.FC<FlashMessageProps> = ({
   )
 }
 
-const useFlash: () => [
-  React.FC<{}>,
-  (args: {
-    message: string
-    severity: "success" | "error" | "warning" | "info"
-    id: number
-  }) => void,
-] = () => {
+export type setFlashFunc = (args: {
+  message: string
+  severity: "success" | "error" | "warning" | "info"
+  id: number
+}) => void
+
+const useFlash: () => [React.FC<{}>, setFlashFunc] = () => {
   const [flash, setFlash] = React.useState<{
     open: boolean
     message: string

@@ -46,3 +46,15 @@ export async function sendCardChangeEvent(
     state: cardState,
   })
 }
+
+// The meeting snapshot data structure send on the websocket
+export type MeetingSnapshot = {
+  participants: Array<MeetingParticipant>
+  questions: string[]
+}
+
+export type MeetingParticipant = {
+  id: string
+  name: string
+  card_state: CardState
+}
