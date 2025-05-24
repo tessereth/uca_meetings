@@ -11,17 +11,16 @@ import {
   ListItemIcon,
   ListItemText,
   Paper,
-  SvgIcon,
   Typography,
 } from "@mui/material"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import type { Route } from "../routes/+types/meeting"
 import { useLoaderData } from "react-router"
 import { useEffect, useState } from "react"
 import { orange, blue, yellow, grey } from "@mui/material/colors"
 import { sendEvent } from "./channel"
 import useFlash from "components/flash"
+import { CardIconLegacy } from "components/cards"
 
 function CardCheckbox({ color, checked }: { color: any; checked: boolean }) {
   return (
@@ -35,21 +34,6 @@ function CardCheckbox({ color, checked }: { color: any; checked: boolean }) {
         },
       }}
     />
-  )
-}
-
-function CardIcon({ color, enabled }: { color: any; enabled: boolean }) {
-  if (enabled) {
-    return <CardFilled fontSize="large" sx={{ color: color[600] }} />
-  }
-  return <CheckBoxOutlineBlankIcon fontSize="large" sx={{ color: grey[300] }} />
-}
-
-function CardFilled(params: any) {
-  return (
-    <SvgIcon {...params}>
-      <path d="M5 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"></path>
-    </SvgIcon>
   )
 }
 
@@ -175,15 +159,10 @@ export default function Meeting(params: Route.LoaderArgs) {
               {meetingSnapshot.participants.map((participant: any) => (
                 <ListItem key={participant.id}>
                   <ListItemIcon>
-                    <CardIcon color={orange} enabled={participant.cards.warm} />
-                  </ListItemIcon>
-                  <ListItemIcon>
-                    <CardIcon color={blue} enabled={participant.cards.cool} />
-                  </ListItemIcon>
-                  <ListItemIcon>
-                    <CardIcon
-                      color={yellow}
-                      enabled={participant.cards.question}
+                    <CardIconLegacy
+                      warm={participant.cards.warm}
+                      cool={participant.cards.cool}
+                      question={participant.cards.question}
                     />
                   </ListItemIcon>
                   <ListItemText>
