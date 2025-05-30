@@ -1,8 +1,8 @@
 import datetime
-from enum import Enum
 import random
 import string
 import uuid
+from enum import Enum
 from typing import List, Optional
 
 import sqlalchemy as sa
@@ -51,6 +51,7 @@ class Role(str, Enum):
     HOST = "host"
     MEMBER = "member"
 
+
 role_enum = sa.Enum(Role, name="role_enum", create_constraint=True)
 
 
@@ -72,7 +73,9 @@ class Participation(Base):
 
     meeting = relationship("Meeting", back_populates="participants")
     user = relationship("User", back_populates="meetings")
-    __table_args__ = (sa.UniqueConstraint("meeting_id", "user_id", name="uq_meeting_user"),)
+    __table_args__ = (
+        sa.UniqueConstraint("meeting_id", "user_id", name="uq_meeting_user"),
+    )
 
 
 def gen_short_code():

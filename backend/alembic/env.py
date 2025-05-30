@@ -1,11 +1,11 @@
 from logging.config import fileConfig
 
+import alembic_postgresql_enum  # noqa: F401 - this import has side effects so keep it
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from config import settings
 from models import Base
-import alembic_postgresql_enum
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
