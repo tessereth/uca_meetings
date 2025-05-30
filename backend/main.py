@@ -124,8 +124,8 @@ async def meeting_websocket(websocket: WebSocket, short_code: str):
     with Session(engine) as session:
         meeting = get_meeting_by_short_code(session, short_code)
         channel = meeting_channels.get(meeting, session)
-    await channel.connect(websocket)
-    # await channel.send_snapshot(websocket)
+    await channel.add_connection(websocket)
+    await channel.send_snapshot(websocket)
     try:
         while True:
             data = await websocket.receive_json()
@@ -134,7 +134,7 @@ async def meeting_websocket(websocket: WebSocket, short_code: str):
             await channel.handle_event(event)
     except Exception as e:
         print(f"Error in websocket: {e}")
-        channel.disconnect(websocket)
+        channel.remove_connection(websocket)
         raise
 
 

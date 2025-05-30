@@ -1,5 +1,9 @@
+import asyncio
+import json
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 from fastapi import WebSocket, WebSocketException, status
@@ -7,6 +11,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from models import Meeting, Participation
+
+logger = logging.getLogger("uvicorn.error")
 
 
 class CardState(str, Enum):
@@ -131,28 +137,73 @@ class MeetingState:
 
 
 class MeetingChannel:
+    SNAPSHOT_COOLDOWN = timedelta(seconds=1)
+
     def __init__(self, meeting: Meeting, init_participants: list[Participation]):
         self.meeting = meeting
         self.websockets = []
         self.state = MeetingState(init_participants)
+        self.last_snapshot_sent_at = datetime.min.replace(tzinfo=timezone.utc)
+        self.last_snapshot_hash = None
+        self.delayed_snapshot_task = None
 
-    async def connect(self, websocket: WebSocket):
+    async def add_connection(self, websocket: WebSocket):
         await websocket.accept()
         self.websockets.append(websocket)
 
-    def disconnect(self, websocket: WebSocket):
+    def remove_connection(self, websocket: WebSocket):
         self.websockets.remove(websocket)
 
     async def handle_event(self, event: ChannelEvent):
         self.state.apply_event(event)
-        snapshot = self.state.snapshot()
-        for websocket in self.websockets:
-            # TODO: parallel?
-            await websocket.send_json(snapshot)
+        await self.broadcast_snapshot_with_cooldown()
 
     async def send_snapshot(self, websocket: WebSocket):
         snapshot = self.state.snapshot()
         await websocket.send_json(snapshot)
+
+    async def broadcast_snapshot_if_changed(self):
+        if len(self.websockets) > 0:
+            snapshot = self.state.snapshot()
+            snapshot_json = json.dumps(snapshot)
+            snapshot_hash = hash(snapshot_json)
+            if self.last_snapshot_hash == snapshot_hash:
+                logger.debug("Snapshot unchanged, skipping snapshot broadcast")
+                return
+            tasks = [
+                websocket.send_text(snapshot_json) for websocket in self.websockets
+            ]
+            await asyncio.gather(*tasks)
+            self.last_snapshot_hash = snapshot_hash
+            self.last_snapshot_sent_at = datetime.now(timezone.utc)
+
+    async def broadcast_snapshot_with_cooldown(self):
+        if (
+            datetime.now(timezone.utc)
+            > self.last_snapshot_sent_at + self.SNAPSHOT_COOLDOWN
+        ):
+            logger.debug("Handling snapshot immediately")
+            await self.broadcast_snapshot_if_changed()
+            return
+        # Delay sending the snapshot until cooldown expires, don't duplicate sends
+        if self.delayed_snapshot_task is None:
+            logger.debug("Enqueuing delayed snapshot")
+
+            async def delayed_snapshot():
+                await asyncio.sleep(
+                    (
+                        self.last_snapshot_sent_at
+                        + self.SNAPSHOT_COOLDOWN
+                        - datetime.now(timezone.utc)
+                    ).total_seconds()
+                )
+                logger.debug("Sending delayed snapshot")
+                await self.broadcast_snapshot_if_changed()
+                self.delayed_snapshot_task = None
+
+            self.delayed_snapshot_task = asyncio.create_task(delayed_snapshot())
+        else:
+            logger.debug("Throttling sending snapshot")
 
     def __repr__(self):
         return f"MeetingChannel(meeting={self.meeting.short_code})"
