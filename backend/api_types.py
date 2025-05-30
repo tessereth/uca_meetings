@@ -25,6 +25,7 @@ class Meeting(BaseModel):
 class Participation(BaseModel):
     id: uuid.UUID
     name: str
+    role: str
 
     class Config:
         from_attributes = True

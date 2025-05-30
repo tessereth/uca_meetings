@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 import random
 import string
 import uuid
@@ -46,6 +47,13 @@ class User(Base):
     )
 
 
+class Role(str, Enum):
+    HOST = "host"
+    MEMBER = "member"
+
+role_enum = sa.Enum(Role, name="role_enum", create_constraint=True)
+
+
 class Participation(Base):
     __tablename__ = "participation"
 
@@ -60,9 +68,11 @@ class Participation(Base):
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         server_default=sa.func.now(), nullable=False
     )
+    role: Mapped[Role] = mapped_column(nullable=False)
 
     meeting = relationship("Meeting", back_populates="participants")
     user = relationship("User", back_populates="meetings")
+    __table_args__ = (sa.UniqueConstraint("meeting_id", "user_id", name="uq_meeting_user"),)
 
 
 def gen_short_code():
