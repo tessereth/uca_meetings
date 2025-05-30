@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, WebSocket
+from fastapi import APIRouter, HTTPException, WebSocket, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -38,6 +38,15 @@ def create_meeting(
     return MeetingResponse(meeting=meeting, participation=participation)
 
 
+@router.get("/api/meetings/{short_code}")
+def get_meeting(short_code: str, current_user: CurrentUser, session: DbSession):
+    meeting = get_meeting_by_short_code(session, short_code)
+    return MeetingResponse(
+        meeting=meeting,
+        participation=get_participation(session, meeting, current_user),
+    )
+
+
 @router.post("/api/meetings/{short_code}/participants")
 def join_meeting(
     short_code: str,
@@ -55,7 +64,7 @@ def join_meeting(
         participation.name = join_meeting.user_name
     else:
         participation = Participation(
-            user=current_user, meeting=meeting, name=join_meeting.user_name
+            user=current_user, meeting=meeting, name=join_meeting.user_name, role=Role.MEMBER
         )
 
     current_user.last_used_name = join_meeting.user_name
@@ -66,14 +75,29 @@ def join_meeting(
     session.refresh(participation)
     return MeetingResponse(meeting=meeting, participation=participation)
 
-
-@router.get("/api/meetings/{short_code}")
-def get_meeting(short_code: str, current_user: CurrentUser, session: DbSession):
+@router.delete("/api/meetings/{short_code}/participants/{participation_id}")
+def remove_participant(
+  short_code: str,
+  participation_id: int,
+  current_user: CurrentUser,
+  session: DbSession,
+):
     meeting = get_meeting_by_short_code(session, short_code)
-    return MeetingResponse(
-        meeting=meeting,
-        participation=get_participation(session, meeting, current_user),
+    # Only allow host to remove participants
+    participation = get_participation(session, meeting, current_user)
+    if participation.role != Role.HOST:
+      raise HTTPException(status_code=403, detail="Only host can remove participants")
+
+    stmt = select(Participation).where(
+      Participation.id == participation_id
     )
+    participant = session.scalars(stmt).first()
+    if not participant:
+      raise HTTPException(status_code=404, detail="Participant not found")
+
+    session.delete(participant)
+    session.commit()
+    return "", status.HTTP_204_NO_CONTENT
 
 
 @router.websocket("/api/meetings/{short_code}/ws")
@@ -91,12 +115,6 @@ async def meeting_websocket(websocket: WebSocket, short_code: str, session: DbSe
         print(f"Error in websocket: {e}")
         channel.remove_connection(websocket)
         raise
-
-
-@router.post("/api/meetings/{short_code}/flush")
-def flush_meeting(short_code: str, session: DbSession):
-    meeting = get_meeting_by_short_code(session, short_code)
-    meeting_channels.remove(meeting)
 
 
 def get_meeting_by_short_code(session: Session, short_code: str):

@@ -1,4 +1,4 @@
-import type { Participation } from "~/actions"
+import type { Participation, Role } from "~/actions"
 // @ts-ignore
 import RobustWebSocket from "robust-websocket"
 import type { CardState } from "~/components/cardState"
@@ -54,7 +54,7 @@ export class MeetingSnapshot {
 
   constructor(websocketData: any) {
     this.participants = websocketData.participants.map(
-      (p: any) => new MeetingParticipant(p.id, p.name, p.card_state),
+      (p: any) => new MeetingParticipant(p.id, p.name, p.card_state, p.role),
     )
     this.questions = websocketData.questions
   }
@@ -72,10 +72,12 @@ export class MeetingParticipant {
   id: string
   name: string
   cardState: CardState
+  role: Role
 
-  constructor(id: string, name: string, cardState: CardState) {
+  constructor(id: string, name: string, cardState: CardState, role: Role) {
     this.id = id
     this.name = name
     this.cardState = cardState
+    this.role = role
   }
 }

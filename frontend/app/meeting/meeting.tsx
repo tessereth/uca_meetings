@@ -67,7 +67,10 @@ export default function Meeting(params: Route.LoaderArgs) {
               {meetingSnapshot.questions.length > 0 && (
                 <QuestionList meetingSnapshot={meetingSnapshot} />
               )}
-              <ParticipantsList participants={meetingSnapshot.participants} />
+              <ParticipantsList
+                participants={meetingSnapshot.participants}
+                currentParticipation={meetingData.participation}
+              />
             </Grid>
           )}
         </Grid>

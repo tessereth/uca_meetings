@@ -26,13 +26,20 @@ export class Meeting {
   }
 }
 
+export enum Role {
+  Host = "host",
+  Member = "member",
+}
+
 export class Participation {
   id: string
   name: string
+  role: Role
 
-  constructor(id: string, name: string) {
+  constructor(id: string, name: string, role: string) {
     this.id = id
     this.name = name
+    this.role = role as Role
   }
 }
 

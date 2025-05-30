@@ -125,6 +125,7 @@ class MeetingState:
             {
                 "id": str(p.participation.id),
                 "name": p.participation.name,
+                "role": p.participation.role,
                 "card_state": p.card_state,
             }
             for p in self.participants.values()
