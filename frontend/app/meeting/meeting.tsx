@@ -108,7 +108,9 @@ export default function Meeting(params: Route.LoaderArgs) {
                 participants={meetingSnapshot.participants}
                 currentParticipation={meetingData.participation}
                 onLowerCard={(participant: MeetingParticipant) => {
-                  /* TODO */
+                  if (websocket) {
+                    sendCardChangeEvent(websocket, participant, CardState.None)
+                  }
                 }}
                 onMakeHost={async (participant: MeetingParticipant) => {
                   const response = await changeRole(
