@@ -1,7 +1,6 @@
 import { APIErrorResponse, getMeeting } from "~/actions"
 import type { Route } from "./+types/meeting"
 import Meeting from "~/meeting/meeting"
-import { connectWebSocket } from "~/meeting/channel"
 import { redirect } from "react-router"
 
 export function meta({}: Route.MetaArgs) {
@@ -16,12 +15,9 @@ export async function clientLoader({ params }: Route.LoaderArgs) {
       return redirect(`/?meeting=${params.shortCode}`)
     }
   }
-  // TODO: reconnect if the connection is closed
-  const websocket = await connectWebSocket(params.shortCode)
 
   return {
     meetingData: response,
-    websocket: websocket,
   }
 }
 

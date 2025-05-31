@@ -2,7 +2,11 @@ import { Container, Grid } from "@mui/material"
 import type { Route } from "../routes/+types/meeting"
 import { useLoaderData } from "react-router"
 import { useEffect, useState } from "react"
-import { sendCardChangeEvent, MeetingSnapshot } from "./channel"
+import {
+  sendCardChangeEvent,
+  MeetingSnapshot,
+  connectWebSocket,
+} from "./channel"
 import useFlash from "~/components/flash"
 import { CardState } from "~/components/cardState"
 import Header from "./header"
@@ -12,19 +16,13 @@ import QuestionList from "./questionList"
 import ParticipantsList from "./participantsList"
 
 export default function Meeting(params: Route.LoaderArgs) {
-  const { meetingData, websocket } = useLoaderData()
+  const { meetingData } = useLoaderData()
   const [cardState, setCardState] = useState(CardState.None)
-
-  const [FlashComponent, setFlash] = useFlash()
-
-  // Websocket setup
+  const [websocket, setWebsocket] = useState<WebSocket>()
   const [meetingSnapshot, setMeetingSnapshot] =
     useState<MeetingSnapshot | null>()
 
-  const syncCardData = () => {
-    console.log("Syncing card data")
-    sendCardChangeEvent(websocket, meetingData.participation, cardState)
-  }
+  const [FlashComponent, setFlash] = useFlash()
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -33,20 +31,35 @@ export default function Meeting(params: Route.LoaderArgs) {
       setMeetingSnapshot(new MeetingSnapshot(data))
     }
 
-    console.log("Setting up WebSocket event listener")
-    websocket.addEventListener("open", syncCardData)
-    websocket.addEventListener("message", onMessage)
+    console.log("Setting up WebSocket", params)
+    const newWebsocket = connectWebSocket(params.params.shortCode)
+    setWebsocket(newWebsocket)
 
-    if (websocket.readyState === WebSocket.OPEN) {
+    const syncCardData = () => {
+      console.log("Syncing card data")
+      sendCardChangeEvent(newWebsocket, meetingData.participation, cardState)
+    }
+    newWebsocket.addEventListener("open", syncCardData)
+    newWebsocket.addEventListener("message", onMessage)
+
+    if (newWebsocket.readyState === WebSocket.OPEN) {
       // If the WebSocket is already open, trigger onOpen manually
       syncCardData()
     }
 
     return () => {
-      websocket.removeEventListener("open", syncCardData)
-      websocket.removeEventListener("message", onMessage)
+      console.log("Closing websocket")
+      setWebsocket(undefined)
+      newWebsocket.close()
     }
   }, [])
+
+  const onCardSelect = (state: CardState) => {
+    setCardState(state)
+    if (websocket) {
+      sendCardChangeEvent(websocket, meetingData.participation, state)
+    }
+  }
 
   return (
     <main>
@@ -54,12 +67,7 @@ export default function Meeting(params: Route.LoaderArgs) {
         <Header meetingData={meetingData} setFlash={setFlash} />
         <Grid container spacing={{ xs: 2, sm: 4 }}>
           <Grid size={{ xs: 12, md: 6 }}>
-            <CardSelect
-              cardState={cardState}
-              setCardState={setCardState}
-              websocket={websocket}
-              meetingData={meetingData}
-            />
+            <CardSelect cardState={cardState} onSelect={onCardSelect} />
           </Grid>
           {meetingSnapshot && meetingSnapshot.participants && (
             <Grid size={{ xs: 12, md: 6 }}>

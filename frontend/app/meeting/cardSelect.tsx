@@ -9,23 +9,14 @@ import {
 } from "@mui/material"
 import { CardIcon, cardStateLabel } from "~/components/cards"
 import { CardState } from "~/components/cardState"
-import { sendCardChangeEvent } from "./channel"
-import type { MeetingResponse } from "~/actions"
 import CheckIcon from "@mui/icons-material/Check"
 
 interface CardSelectProps {
   cardState: CardState
-  setCardState: (state: CardState) => void
-  websocket: WebSocket
-  meetingData: MeetingResponse
+  onSelect: (state: CardState) => void
 }
 
-export default function CardSelect({
-  cardState,
-  setCardState,
-  websocket,
-  meetingData,
-}: CardSelectProps) {
+export default function CardSelect({ cardState, onSelect }: CardSelectProps) {
   return (
     <Paper elevation={2} sx={{ p: 2 }}>
       <Box>
@@ -37,10 +28,7 @@ export default function CardSelect({
             <ListItemButton
               key={state}
               selected={state == cardState}
-              onClick={() => {
-                setCardState(state)
-                sendCardChangeEvent(websocket, meetingData.participation, state)
-              }}
+              onClick={() => onSelect(state)}
             >
               <ListItemIcon sx={{ minWidth: "32px" }}>
                 {state == cardState && <CheckIcon />}

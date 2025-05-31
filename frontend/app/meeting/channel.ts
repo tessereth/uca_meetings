@@ -16,7 +16,9 @@ export function connectWebSocket(shortCode: string): WebSocket {
   })
 
   socket.addEventListener("error", (error: any) => {
-    console.error("WebSocket error", error)
+    const readyStateMap = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"]
+    const stateString = readyStateMap[socket.readyState] || socket.readyState
+    console.error(`WebSocket error, readyState: ${stateString}, error:`, error)
   })
   return socket
 }
