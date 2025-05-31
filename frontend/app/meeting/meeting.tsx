@@ -18,6 +18,7 @@ import ParticipantsList from "./participantsList"
 import {
   APIErrorResponse,
   changeRole,
+  createSimulatedParticipant,
   leaveMeeting,
   MeetingResponse,
   Role,
@@ -134,8 +135,14 @@ export default function Meeting(params: Route.LoaderArgs) {
                 }}
                 onAddParticipant={
                   new URLSearchParams(window.location.search).has("debug")
-                    ? () => {
-                        /* TODO */
+                    ? async () => {
+                        const response =
+                          await createSimulatedParticipant(shortCode)
+                        setFlashFromResponse(
+                          response,
+                          `${response.name} created`,
+                          "Failed to create simulated participant",
+                        )
                       }
                     : undefined
                 }

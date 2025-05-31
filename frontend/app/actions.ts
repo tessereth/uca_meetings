@@ -227,3 +227,22 @@ export const changeRole = async (
     return new APIErrorResponse(error.message)
   }
 }
+
+export const createSimulatedParticipant = async (
+  shortCode: string,
+): Promise<any> => {
+  try {
+    const response = await fetch(
+      urlFor(`meetings/${shortCode}/simulated_participants`),
+      {
+        method: "POST",
+        headers: await defaultHeaders(),
+      },
+    )
+
+    return await handleResponse(response)
+  } catch (error: any) {
+    console.error("Error creating simulated participant:", error)
+    return new APIErrorResponse(error.message)
+  }
+}

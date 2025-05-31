@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+from random import choice
 
 from fastapi import WebSocket, WebSocketException, status
 from sqlalchemy import select
@@ -37,7 +38,7 @@ class EventType(Enum):
 
 
 @dataclass
-class ChannelEvent:
+class ChannelEvent(object):
     participation: Participation
 
     @staticmethod
@@ -145,6 +146,7 @@ class MeetingState:
 
 class MeetingChannel:
     SNAPSHOT_COOLDOWN = timedelta(seconds=1)
+    SIMULATED_EVENT_INTERVAL = timedelta(seconds=5)
 
     def __init__(self, meeting: Meeting, init_participants: list[Participation]):
         self.meeting = meeting
@@ -153,13 +155,18 @@ class MeetingChannel:
         self.last_snapshot_sent_at = datetime.min.replace(tzinfo=timezone.utc)
         self.last_snapshot_hash = None
         self.delayed_snapshot_task = None
+        self.simulated_event_task = None
 
     async def add_connection(self, websocket: WebSocket):
         await websocket.accept()
         self.websockets.append(websocket)
+        self._maybe_start_simulated_task()
 
     def remove_connection(self, websocket: WebSocket):
         self.websockets.remove(websocket)
+        if len(self.websockets) == 0:
+            self.simulated_event_task.cancel()
+            self.simulated_event_task = None
 
     async def refresh_participants(self, session: Session):
         participants = session.scalars(
@@ -167,6 +174,7 @@ class MeetingChannel:
         )
         self.state.set_participants(participants)
         await self.broadcast_snapshot_with_cooldown()
+        self._maybe_start_simulated_task()
 
     async def handle_event(self, event: ChannelEvent):
         self.state.apply_event(event)
@@ -218,6 +226,45 @@ class MeetingChannel:
             self.delayed_snapshot_task = asyncio.create_task(delayed_snapshot())
         else:
             logger.debug("Throttling sending snapshot")
+
+    def _maybe_start_simulated_task(self):
+        any_simulated = any(
+            p.participation.simulated for p in self.state.participants.values()
+        )
+        if any_simulated and self.simulated_event_task is None:
+            logger.debug("Starting simulated task")
+            self.simulated_event_task = asyncio.create_task(
+                self._simulated_participant_loop()
+            )
+        elif not any_simulated and self.simulated_event_task is not None:
+            logger.debug("Stopping simulated task")
+            self.simulated_event_task.cancel()
+            self.simulated_event_task = None
+
+    async def _simulated_participant_loop(self):
+        while True:
+            try:
+                for pstate in self.state.participants.values():
+                    participation = pstate.participation
+                    if participation.simulated:
+                        new_state = choice(list(CardState))
+                        event = CardChangeEvent(
+                            participation=participation, state=new_state
+                        )
+                        logger.debug(
+                            "Simulating event: paricipant=%s, state=%s",
+                            event.participation.name,
+                            event.state,
+                        )
+                        self.state.apply_event(event)
+                await self.broadcast_snapshot_with_cooldown()
+                await asyncio.sleep(self.SIMULATED_EVENT_INTERVAL.seconds)
+            except asyncio.CancelledError:
+                logger.debug("Cancelled simulated events")
+                return
+            except Exception:
+                logger.exception("Error in simulated participant loop")
+                await asyncio.sleep(self.SIMULATED_EVENT_INTERVAL.seconds)
 
     def __repr__(self):
         return f"MeetingChannel(meeting={self.meeting.short_code})"

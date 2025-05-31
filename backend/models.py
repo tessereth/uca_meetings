@@ -70,6 +70,9 @@ class Participation(Base):
         server_default=sa.func.now(), nullable=False
     )
     role: Mapped[Role] = mapped_column(nullable=False)
+    simulated: Mapped[bool] = mapped_column(
+        nullable=False, server_default=sa.text("false")
+    )
 
     meeting = relationship("Meeting", back_populates="participants")
     user = relationship("User", back_populates="meetings")

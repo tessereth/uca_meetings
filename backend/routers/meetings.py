@@ -1,3 +1,4 @@
+from faker import Faker
 from fastapi import APIRouter, HTTPException, WebSocket, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from models import Meeting, Participation, Role, User, gen_short_code
 
 router = APIRouter()
 meeting_channels = MeetingChannels()
+fake = Faker(["ar_AA", "en_US", "ja_JP", "zh_CN", "ru_RU", "ko_KR"])
 
 
 @router.post("/api/meetings")
@@ -128,6 +130,38 @@ async def remove_participant(
     session.commit()
     await meeting_channels.get(meeting, session).refresh_participants(session)
     return "", status.HTTP_204_NO_CONTENT
+
+
+@router.post("/api/meetings/{short_code}/simulated_participants")
+async def create_simulated_participant(
+    short_code: str,
+    current_user: CurrentUser,
+    session: DbSession,
+):
+    meeting = get_meeting_by_short_code(session, short_code)
+
+    participation = get_participation(session, meeting, current_user)
+    if participation.role != Role.HOST:
+        raise HTTPException(
+            status_code=403, detail="Only hosts can create simulated participants"
+        )
+
+    name = fake.name()
+    fake_user = User(last_used_name=name)
+    fake_participation = Participation(
+        user=fake_user,
+        meeting=meeting,
+        name=name,
+        role=Role.MEMBER,
+        simulated=True,
+    )
+
+    session.add(fake_user)
+    session.add(fake_participation)
+    session.commit()
+    session.refresh(meeting)
+    await meeting_channels.get(meeting, session).refresh_participants(session)
+    return {"name": name}
 
 
 @router.websocket("/api/meetings/{short_code}/ws")
