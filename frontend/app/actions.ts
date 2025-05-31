@@ -17,12 +17,12 @@ export class CreateMeeting {
 export class Meeting {
   name: string
   anonymous: boolean
-  short_code: string
+  shortCode: string
 
-  constructor(name: string, anonymous: boolean, short_code: string) {
+  constructor(name: string, anonymous: boolean, shortCode: string) {
     this.name = name
     this.anonymous = anonymous
-    this.short_code = short_code
+    this.shortCode = shortCode
   }
 }
 
@@ -47,9 +47,11 @@ export class MeetingResponse {
   meeting: Meeting
   participation: Participation
 
-  constructor(meeting: Meeting, participation: Participation) {
-    this.meeting = meeting
-    this.participation = participation
+  constructor(response: any) {
+    const m = response.meeting
+    this.meeting = new Meeting(m.name, m.anonymous, m.short_code)
+    const p = response.participation
+    this.participation = new Participation(p.id, p.name, p.role)
   }
 }
 
@@ -96,7 +98,10 @@ const defaultHeaders = async () => ({
   Authorization: `Bearer ${await getToken()}`,
 })
 
-const handleResponse = async (response: Response): Promise<any> => {
+const handleResponse = async (
+  response: Response,
+  successType?: any,
+): Promise<any> => {
   if (!response.ok) {
     if (response.status === 401) {
       deleteToken()
@@ -104,7 +109,12 @@ const handleResponse = async (response: Response): Promise<any> => {
     return new APIErrorResponse(response.statusText, response.status)
   }
 
-  return await response.json()
+  const data = await response.json()
+  if (successType) {
+    return new successType(data)
+  } else {
+    return data
+  }
 }
 
 export const getName = async (): Promise<string | null> => {
@@ -124,7 +134,6 @@ export const getName = async (): Promise<string | null> => {
 export const createMeeting = async (
   meetingData: CreateMeeting,
 ): Promise<MeetingResponse | APIErrorResponse> => {
-  console.log(JSON.stringify(meetingData))
   try {
     const response = await fetch(urlFor("meetings"), {
       method: "POST",
@@ -132,26 +141,7 @@ export const createMeeting = async (
       body: JSON.stringify(meetingData),
     })
 
-    return await handleResponse(response)
-  } catch (error: any) {
-    console.error("Error creating meeting:", error)
-    return new APIErrorResponse(error.message)
-  }
-}
-
-export const joinMeeting = async (
-  shortCode: string,
-  userName: string,
-): Promise<MeetingResponse | APIErrorResponse> => {
-  console.log("Joining meeting with short code:", shortCode)
-  try {
-    const response = await fetch(urlFor(`meetings/${shortCode}/participants`), {
-      method: "POST",
-      headers: await defaultHeaders(),
-      body: JSON.stringify({ user_name: userName }),
-    })
-
-    return await handleResponse(response)
+    return await handleResponse(response, MeetingResponse)
   } catch (error: any) {
     console.error("Error creating meeting:", error)
     return new APIErrorResponse(error.message)
@@ -171,9 +161,69 @@ export const getMeeting = async (
       },
     })
 
-    return await handleResponse(response)
+    return await handleResponse(response, MeetingResponse)
   } catch (error: any) {
     console.error("Error fetching meeting:", error)
+    return new APIErrorResponse(error.message)
+  }
+}
+
+export const joinMeeting = async (
+  shortCode: string,
+  userName: string,
+): Promise<MeetingResponse | APIErrorResponse> => {
+  try {
+    const response = await fetch(urlFor(`meetings/${shortCode}/participants`), {
+      method: "POST",
+      headers: await defaultHeaders(),
+      body: JSON.stringify({ user_name: userName }),
+    })
+
+    return await handleResponse(response, MeetingResponse)
+  } catch (error: any) {
+    console.error("Error joining meeting:", error)
+    return new APIErrorResponse(error.message)
+  }
+}
+
+export const leaveMeeting = async (
+  shortCode: string,
+  participationId: string,
+): Promise<MeetingResponse | APIErrorResponse> => {
+  try {
+    const response = await fetch(
+      urlFor(`meetings/${shortCode}/participants/${participationId}`),
+      {
+        method: "DELETE",
+        headers: await defaultHeaders(),
+      },
+    )
+
+    return await handleResponse(response)
+  } catch (error: any) {
+    console.error("Error leaving meeting:", error)
+    return new APIErrorResponse(error.message)
+  }
+}
+
+export const changeRole = async (
+  shortCode: string,
+  participationId: string,
+  role: Role,
+): Promise<MeetingResponse | APIErrorResponse> => {
+  try {
+    const response = await fetch(
+      urlFor(`meetings/${shortCode}/participants/${participationId}`),
+      {
+        method: "PATCH",
+        headers: await defaultHeaders(),
+        body: JSON.stringify({ role: role }),
+      },
+    )
+
+    return await handleResponse(response)
+  } catch (error: any) {
+    console.error("Error updating participant:", error)
     return new APIErrorResponse(error.message)
   }
 }

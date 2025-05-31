@@ -2,6 +2,8 @@ import uuid
 
 from pydantic import BaseModel
 
+from models import Role
+
 
 class CreateMeeting(BaseModel):
     meeting_name: str
@@ -11,6 +13,10 @@ class CreateMeeting(BaseModel):
 
 class JoinMeeting(BaseModel):
     user_name: str
+
+
+class UpdateRole(BaseModel):
+    role: Role
 
 
 class Meeting(BaseModel):

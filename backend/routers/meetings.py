@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, WebSocket, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from api_types import CreateMeeting, JoinMeeting, MeetingResponse
+from api_types import CreateMeeting, JoinMeeting, MeetingResponse, UpdateRole
 from channel import ChannelEvent, MeetingChannels
 from database import DbSession
 from dependencies import CurrentUser
@@ -48,7 +48,7 @@ def get_meeting(short_code: str, current_user: CurrentUser, session: DbSession):
 
 
 @router.post("/api/meetings/{short_code}/participants")
-def join_meeting(
+async def join_meeting(
     short_code: str,
     join_meeting: JoinMeeting,
     current_user: CurrentUser,
@@ -64,7 +64,10 @@ def join_meeting(
         participation.name = join_meeting.user_name
     else:
         participation = Participation(
-            user=current_user, meeting=meeting, name=join_meeting.user_name, role=Role.MEMBER
+            user=current_user,
+            meeting=meeting,
+            name=join_meeting.user_name,
+            role=Role.MEMBER,
         )
 
     current_user.last_used_name = join_meeting.user_name
@@ -73,30 +76,57 @@ def join_meeting(
     session.commit()
     session.refresh(meeting)
     session.refresh(participation)
+    await meeting_channels.get(meeting, session).refresh_participants(session)
     return MeetingResponse(meeting=meeting, participation=participation)
 
+
+@router.patch("/api/meetings/{short_code}/participants/{participation_id}")
+async def update_participant_role(
+    short_code: str,
+    participation_id: str,
+    update_role: UpdateRole,
+    current_user: CurrentUser,
+    session: DbSession,
+):
+    meeting = get_meeting_by_short_code(session, short_code)
+    # Only allow host to update roles
+    participation = get_participation(session, meeting, current_user)
+    if participation.role != Role.HOST:
+        raise HTTPException(status_code=403, detail="Only hosts can update roles")
+
+    stmt = select(Participation).where(Participation.id == participation_id)
+    participant = session.scalars(stmt).first()
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+
+    participant.role = update_role.role
+    session.add(participant)
+    session.commit()
+    await meeting_channels.get(meeting, session).refresh_participants(session)
+    return "", status.HTTP_204_NO_CONTENT
+
+
 @router.delete("/api/meetings/{short_code}/participants/{participation_id}")
-def remove_participant(
-  short_code: str,
-  participation_id: int,
-  current_user: CurrentUser,
-  session: DbSession,
+async def remove_participant(
+    short_code: str,
+    participation_id: str,
+    current_user: CurrentUser,
+    session: DbSession,
 ):
     meeting = get_meeting_by_short_code(session, short_code)
     # Only allow host to remove participants
     participation = get_participation(session, meeting, current_user)
     if participation.role != Role.HOST:
-      raise HTTPException(status_code=403, detail="Only host can remove participants")
+        raise HTTPException(status_code=403, detail="Only host can remove participants")
 
-    stmt = select(Participation).where(
-      Participation.id == participation_id
-    )
+    stmt = select(Participation).where(Participation.id == participation_id)
     participant = session.scalars(stmt).first()
     if not participant:
-      raise HTTPException(status_code=404, detail="Participant not found")
+        raise HTTPException(status_code=404, detail="Participant not found")
 
     session.delete(participant)
     session.commit()
+    await meeting_channels.get(meeting, session).refresh_participants(session)
     return "", status.HTTP_204_NO_CONTENT
 
 

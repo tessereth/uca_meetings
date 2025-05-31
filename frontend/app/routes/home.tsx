@@ -38,7 +38,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
         },
       }
     } else {
-      return redirect(`/${data.meeting.short_code}`)
+      return redirect(`/${data.meeting.shortCode}`)
     }
   } else if (formType === "create") {
     const meetingData = new CreateMeeting(
@@ -51,13 +51,13 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       console.error("Error creating meeting:", response.message)
       return {
         flash: {
-          message: "Error joining meeting: " + response.message,
+          message: "Error creating meeting: " + response.message,
           severity: "error",
           id: Date.now(),
         },
       }
     } else {
-      return redirect(`/${response.meeting.short_code}`)
+      return redirect(`/${response.meeting.shortCode}`)
     }
   }
 }

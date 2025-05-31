@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -102,6 +101,13 @@ class MeetingState:
         self.participants = {p.id: ParticipationState(p) for p in init_participants}
         self.questions = []
 
+    def set_participants(self, participants):
+        old_participants = self.participants
+        self.participants = {p.id: ParticipationState(p) for p in participants}
+        for pid in self.participants:
+            if pid in old_participants:
+                self.participants[pid].card_state = old_participants[pid].card_state
+
     def apply_event(self, event: ChannelEvent):
         if event.participation.id not in self.participants:
             self.participants[event.participation.id] = ParticipationState(
@@ -155,6 +161,13 @@ class MeetingChannel:
     def remove_connection(self, websocket: WebSocket):
         self.websockets.remove(websocket)
 
+    async def refresh_participants(self, session: Session):
+        participants = session.scalars(
+            select(Participation).where(Participation.meeting == self.meeting)
+        )
+        self.state.set_participants(participants)
+        await self.broadcast_snapshot_with_cooldown()
+
     async def handle_event(self, event: ChannelEvent):
         self.state.apply_event(event)
         await self.broadcast_snapshot_with_cooldown()
@@ -163,7 +176,7 @@ class MeetingChannel:
         snapshot = self.state.snapshot()
         await websocket.send_json(snapshot)
 
-    async def broadcast_snapshot_if_changed(self):
+    async def _broadcast_snapshot_if_changed(self):
         if len(self.websockets) > 0:
             snapshot = self.state.snapshot()
             snapshot_json = json.dumps(snapshot)
@@ -184,7 +197,7 @@ class MeetingChannel:
             > self.last_snapshot_sent_at + self.SNAPSHOT_COOLDOWN
         ):
             logger.debug("Handling snapshot immediately")
-            await self.broadcast_snapshot_if_changed()
+            await self._broadcast_snapshot_if_changed()
             return
         # Delay sending the snapshot until cooldown expires, don't duplicate sends
         if self.delayed_snapshot_task is None:
@@ -199,7 +212,7 @@ class MeetingChannel:
                     ).total_seconds()
                 )
                 logger.debug("Sending delayed snapshot")
-                await self.broadcast_snapshot_if_changed()
+                await self._broadcast_snapshot_if_changed()
                 self.delayed_snapshot_task = None
 
             self.delayed_snapshot_task = asyncio.create_task(delayed_snapshot())
@@ -208,9 +221,6 @@ class MeetingChannel:
 
     def __repr__(self):
         return f"MeetingChannel(meeting={self.meeting.short_code})"
-
-
-meeting_channels = defaultdict(MeetingChannel)
 
 
 class MeetingChannels:

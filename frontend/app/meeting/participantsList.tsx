@@ -4,6 +4,7 @@ import {
   IconButton,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Stack,
@@ -11,6 +12,7 @@ import {
   Typography,
 } from "@mui/material"
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove"
+import PersonAddIcon from "@mui/icons-material/PersonAdd"
 import ClearIcon from "@mui/icons-material/Clear"
 import AddModeratorIcon from "@mui/icons-material/AddModerator"
 import { CardIcon } from "~/components/cards"
@@ -21,11 +23,19 @@ import type { Participation } from "~/actions"
 type ParticipantsListProps = {
   participants: MeetingParticipant[]
   currentParticipation: Participation
+  onLowerCard: (participant: MeetingParticipant) => void
+  onMakeHost: (participant: MeetingParticipant) => void
+  onKick: (participant: MeetingParticipant) => void
+  onAddParticipant?: () => void
 }
 
 export default function ParticipantsList({
   participants,
   currentParticipation,
+  onLowerCard,
+  onMakeHost,
+  onKick,
+  onAddParticipant,
 }: ParticipantsListProps) {
   const actions = (participant: MeetingParticipant) => {
     if (
@@ -38,7 +48,7 @@ export default function ParticipantsList({
     if (participant.cardState !== CardState.None) {
       actions.push(
         <Tooltip title="Lower card" key="lower">
-          <IconButton edge="end">
+          <IconButton edge="end" onClick={() => onLowerCard(participant)}>
             <ClearIcon />
           </IconButton>
         </Tooltip>,
@@ -47,7 +57,7 @@ export default function ParticipantsList({
     if (participant.role !== "host") {
       actions.push(
         <Tooltip title="Make host" key="host">
-          <IconButton edge="end">
+          <IconButton edge="end" onClick={() => onMakeHost(participant)}>
             <AddModeratorIcon />
           </IconButton>
         </Tooltip>,
@@ -55,7 +65,7 @@ export default function ParticipantsList({
     }
     actions.push(
       <Tooltip title="Remove from meeting" key="remove">
-        <IconButton edge="end">
+        <IconButton edge="end" onClick={() => onKick(participant)}>
           <PersonRemoveIcon />
         </IconButton>
       </Tooltip>,
@@ -85,6 +95,18 @@ export default function ParticipantsList({
             </ListItemText>
           </ListItem>
         ))}
+        {onAddParticipant && (
+          <ListItemButton onClick={onAddParticipant}>
+            <ListItemIcon>
+              <PersonAddIcon />
+            </ListItemIcon>
+            <ListItemText>
+              <Typography variant="body1" component="span">
+                Add simulated participant
+              </Typography>
+            </ListItemText>
+          </ListItemButton>
+        )}
       </List>
     </Box>
   )

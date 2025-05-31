@@ -6,6 +6,7 @@ import {
   sendCardChangeEvent,
   MeetingSnapshot,
   connectWebSocket,
+  MeetingParticipant,
 } from "./channel"
 import useFlash from "~/components/flash"
 import { CardState } from "~/components/cardState"
@@ -14,9 +15,17 @@ import CardSelect from "./cardSelect"
 import Summary from "./summary"
 import QuestionList from "./questionList"
 import ParticipantsList from "./participantsList"
+import {
+  APIErrorResponse,
+  changeRole,
+  leaveMeeting,
+  MeetingResponse,
+  Role,
+} from "~/actions"
 
 export default function Meeting(params: Route.LoaderArgs) {
-  const { meetingData } = useLoaderData()
+  const { meetingData } = useLoaderData() as { meetingData: MeetingResponse }
+  const { shortCode } = meetingData.meeting
   const [cardState, setCardState] = useState(CardState.None)
   const [websocket, setWebsocket] = useState<WebSocket>()
   const [meetingSnapshot, setMeetingSnapshot] =
@@ -61,6 +70,26 @@ export default function Meeting(params: Route.LoaderArgs) {
     }
   }
 
+  const setFlashFromResponse = (
+    response: any,
+    successMessage: string,
+    failureMessage: string,
+  ) => {
+    if (response instanceof APIErrorResponse) {
+      setFlash({
+        message: `${failureMessage}: ${response.message}`,
+        severity: "error",
+        id: Date.now(),
+      })
+    } else {
+      setFlash({
+        message: successMessage,
+        severity: "success",
+        id: Date.now(),
+      })
+    }
+  }
+
   return (
     <main>
       <Container>
@@ -78,6 +107,36 @@ export default function Meeting(params: Route.LoaderArgs) {
               <ParticipantsList
                 participants={meetingSnapshot.participants}
                 currentParticipation={meetingData.participation}
+                onLowerCard={(participant: MeetingParticipant) => {
+                  /* TODO */
+                }}
+                onMakeHost={async (participant: MeetingParticipant) => {
+                  const response = await changeRole(
+                    shortCode,
+                    participant.id,
+                    Role.Host,
+                  )
+                  setFlashFromResponse(
+                    response,
+                    `${participant.name} is now a host`,
+                    `Failed to make ${participant.name} a host`,
+                  )
+                }}
+                onKick={async (participant: MeetingParticipant) => {
+                  const response = await leaveMeeting(shortCode, participant.id)
+                  setFlashFromResponse(
+                    response,
+                    `${participant.name} has been removed`,
+                    `Failed to remove ${participant.name}`,
+                  )
+                }}
+                onAddParticipant={
+                  new URLSearchParams(window.location.search).has("debug")
+                    ? () => {
+                        /* TODO */
+                      }
+                    : undefined
+                }
               />
             </Grid>
           )}

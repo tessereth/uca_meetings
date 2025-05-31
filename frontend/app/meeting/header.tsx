@@ -35,7 +35,7 @@ export default function Header({ meetingData, setFlash }: HeaderProps) {
       <Typography variant="subtitle1">
         {meetingData.participation.name}
         {" — "}
-        {meetingData.meeting.short_code}
+        {meetingData.meeting.shortCode}
         <Button
           sx={{ mx: 1 }}
           onClick={() => copyToClipboard(window.location.toString(), setFlash)}
