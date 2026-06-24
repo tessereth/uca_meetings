@@ -105,6 +105,7 @@ class MeetingState:
     def set_participants(self, participants):
         old_participants = self.participants
         self.participants = {p.id: ParticipationState(p) for p in participants}
+        self.questions = [q for q in self.questions if q in self.participants]
         for pid in self.participants:
             if pid in old_participants:
                 self.participants[pid].card_state = old_participants[pid].card_state
