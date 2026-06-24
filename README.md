@@ -4,13 +4,13 @@ An app for managing UCA meetings.
 
 It's build with the following technology:
 
-* Python FastAPI
-* Postgres
-* SQL Model
-* [Alembic](https://alembic.sqlalchemy.org/en/latest/index.html)
-* React
-* [Material UI](https://mui.com/material-ui/getting-started/)
-* Pubsub TBD
+- Python FastAPI
+- Postgres
+- SQL Model
+- [Alembic](https://alembic.sqlalchemy.org/en/latest/index.html)
+- React
+- [Material UI](https://mui.com/material-ui/getting-started/)
+- Pubsub TBD
 
 ## Development
 
@@ -36,7 +36,8 @@ alembic upgrade head
 Run the webserver:
 
 ```sh
-fastapi dev backend/main.py
+cd backend
+fastapi dev main.py
 ```
 
 View swagger docs at http://127.0.0.1:8000/docs.
