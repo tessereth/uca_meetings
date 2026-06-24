@@ -165,7 +165,7 @@ class MeetingChannel:
 
     def remove_connection(self, websocket: WebSocket):
         self.websockets.remove(websocket)
-        if len(self.websockets) == 0:
+        if len(self.websockets) == 0 and self.simulated_event_task is not None:
             self.simulated_event_task.cancel()
             self.simulated_event_task = None
 
