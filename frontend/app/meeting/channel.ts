@@ -4,7 +4,8 @@ import RobustWebSocket from "robust-websocket"
 import type { CardState } from "~/components/cardState"
 
 export function connectWebSocket(shortCode: string): WebSocket {
-  const url = `ws://${window.location.host}/api/meetings/${shortCode}/ws`
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws"
+  const url = `${protocol}://${window.location.host}/api/meetings/${shortCode}/ws`
   const socket = new RobustWebSocket(url, null, {
     shouldReconnect: (_event: any, ws: RobustWebSocket) =>
       ws.reconnects <= 3 && 0,
