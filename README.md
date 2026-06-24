@@ -83,3 +83,15 @@ The frontend is formatted using [prettier](https://prettier.io/):
 cd frontend
 npm run format
 ```
+
+To run the frontend behind ngrok, start ngrok:
+
+```sh
+ngrok http 5173
+```
+
+Then tell Vite to allow the host and restart the dev server:
+
+```sh
+echo 'VITE_ALLOWED_HOSTS = my-domain.ngrok-free.dev' >> .env.local
+```
