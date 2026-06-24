@@ -14,9 +14,9 @@ export function cardStateLabel(state: CardState) {
     case CardState.Question:
       return "Question"
     case CardState.QuestionWarm:
-      return "Speak for"
+      return "Speak warm"
     case CardState.QuestionCool:
-      return "Speak against"
+      return "Speak cool"
     case CardState.MoveOn:
       return "Move on"
     default:
