@@ -23,11 +23,11 @@ cp -r ../frontend/build/client static
 # Setup python environment
 
 if [ ! -d ".venv" ]; then
-  python3 -m venv .venv
+  uv venv .venv
 fi
 source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+uv pip install --upgrade pip
+uv pip install .
 sudo -u uca_meetings .venv/bin/alembic upgrade head
 
 cd ..

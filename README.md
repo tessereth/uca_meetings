@@ -16,13 +16,15 @@ It's build with the following technology:
 
 ### Backend
 
-To set up the backend virtual environment, follow the instructions [here](https://fastapi.tiangolo.com/virtual-environments).
+To set up the backend virtual environment, install [uv](https://docs.astral.sh/uv/getting-started/installation/) and follow the instructions [here](https://fastapi.tiangolo.com/virtual-environments).
 
 Common virtual environment tasks:
 
 ```sh
+cd backend
+uv venv
 source .venv/bin/activate
-pip install -r backend/requirements.txt
+uv sync
 ```
 
 To set up the database, ensure you have postgres running and then:
@@ -52,14 +54,16 @@ psql -d uca_meetings -c 'DELETE FROM participation; DELETE FROM "user"; DELETE F
 Files are formatted/linted using [ruff](https://github.com/astral-sh/ruff):
 
 ```sh
-ruff format backend
-ruff check backend
+cd backend
+ruff format .
+ruff check .
 ```
 
 Basic backend tests are written with [pytest](https://docs.pytest.org/):
 
 ```sh
-pytest backend/tests
+cd backend
+pytest tests
 ```
 
 ### Frontend
