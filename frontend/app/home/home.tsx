@@ -39,6 +39,14 @@ export default function Home(params: Route.LoaderArgs) {
                 label="Meeting ID"
                 variant="outlined"
                 defaultValue={loaderData.shortCode}
+                slotProps={{
+                  htmlInput: {
+                    autoCapitalize: "none",
+                    autoCorrect: "off",
+                    autoComplete: "off",
+                    spellCheck: false,
+                  },
+                }}
               />
               <TextField
                 name="userName"
