@@ -13,8 +13,6 @@ import { CardState } from "~/components/cardState"
 import Header from "./header"
 import CardSelect from "./cardSelect"
 import Summary from "./summary"
-import QuestionList from "./questionList"
-import ParticipantsList from "./participantsList"
 import {
   APIErrorResponse,
   changeRole,
@@ -101,51 +99,48 @@ export default function Meeting(params: Route.LoaderArgs) {
           </Grid>
           {meetingSnapshot && meetingSnapshot.participants && (
             <Grid size={{ xs: 12, md: 6 }}>
-              <Summary meetingSnapshot={meetingSnapshot} />
-              {meetingSnapshot.questions.length > 0 && (
-                <QuestionList meetingSnapshot={meetingSnapshot} />
-              )}
-              <ParticipantsList
-                participants={meetingSnapshot.participants}
+              <Summary
+                meetingSnapshot={meetingSnapshot}
                 currentParticipation={meetingData.participation}
-                onLowerCard={(participant: MeetingParticipant) => {
+                onLowerCards={async (participants: MeetingParticipant[]) => {
                   if (websocket) {
-                    sendCardChangeEvent(websocket, participant, CardState.None)
+                    for (const participant of participants) {
+                      sendCardChangeEvent(websocket, participant, CardState.None)
+                    }
                   }
                 }}
-                onMakeHost={async (participant: MeetingParticipant) => {
-                  const response = await changeRole(
-                    shortCode,
-                    participant.id,
-                    Role.Host,
-                  )
+                onMakeHosts={async (participants: MeetingParticipant[]) => {
+                  for (const participant of participants) {
+                    const response = await changeRole(
+                      shortCode,
+                      participant.id,
+                      Role.Host,
+                    )
+                    setFlashFromResponse(
+                      response,
+                      `${participant.name} is now a host`,
+                      `Failed to make ${participant.name} a host`,
+                    )
+                  }
+                }}
+                onKickParticipants={async (participants: MeetingParticipant[]) => {
+                  for (const participant of participants) {
+                    const response = await leaveMeeting(shortCode, participant.id)
+                    setFlashFromResponse(
+                      response,
+                      `${participant.name} has been removed`,
+                      `Failed to remove ${participant.name}`,
+                    )
+                  }
+                }}
+                onAddSimulatedParticipant={async () => {
+                  const response = await createSimulatedParticipant(shortCode)
                   setFlashFromResponse(
                     response,
-                    `${participant.name} is now a host`,
-                    `Failed to make ${participant.name} a host`,
+                    `${response.name} created`,
+                    "Failed to create simulated participant",
                   )
                 }}
-                onKick={async (participant: MeetingParticipant) => {
-                  const response = await leaveMeeting(shortCode, participant.id)
-                  setFlashFromResponse(
-                    response,
-                    `${participant.name} has been removed`,
-                    `Failed to remove ${participant.name}`,
-                  )
-                }}
-                onAddParticipant={
-                  new URLSearchParams(window.location.search).has("debug")
-                    ? async () => {
-                        const response =
-                          await createSimulatedParticipant(shortCode)
-                        setFlashFromResponse(
-                          response,
-                          `${response.name} created`,
-                          "Failed to create simulated participant",
-                        )
-                      }
-                    : undefined
-                }
               />
             </Grid>
           )}
