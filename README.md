@@ -56,6 +56,12 @@ ruff format backend
 ruff check backend
 ```
 
+Basic backend tests are written with [pytest](https://docs.pytest.org/):
+
+```sh
+pytest backend/tests
+```
+
 ### Frontend
 
 Install a node version manager, eg https://github.com/tj/n.

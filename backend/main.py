@@ -1,7 +1,6 @@
-from fastapi import (
-    FastAPI,
-    HTTPException,
-)
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -13,8 +12,12 @@ app.include_router(users.router)
 app.include_router(meetings.router)
 
 
+BACKEND_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BACKEND_DIR / "static"
+
+
 # Fallback to static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 # And then really fall back to index.html
@@ -22,4 +25,4 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 def default_index(full_path: str):
     if full_path.startswith("/api/"):
         raise HTTPException(status_code=404, detail="Not found")
-    return FileResponse("static/index.html")
+    return FileResponse(STATIC_DIR / "index.html")
